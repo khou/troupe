@@ -8,13 +8,15 @@ Your agents do the work; your team decides what ships; git carries the state.
 
 ## Install
 
-Not on npm yet; install straight from GitHub (Node >= 20):
+Node >= 20:
 
 ```bash
-npm install -g github:khou/trupe   # builds on install, puts `trupe` on your PATH
+npm install -g @khou/trupe    # puts `trupe` on your PATH
 ```
 
-Or from a clone: `git clone https://github.com/khou/trupe && cd trupe && npm install && npm link`.
+One-off without installing: `npx @khou/trupe@latest init`. The command you type
+is always just `trupe`; the package is scoped because npm's typosquat filter
+reserves the bare name. GitHub install works too: `npm install -g github:khou/trupe`.
 
 ## Quickstart (5 minutes, works offline)
 

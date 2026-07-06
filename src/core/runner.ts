@@ -70,7 +70,7 @@ export function composePrompt(view: TaskView, branch: string): string {
     `# Rules`,
     `- Work ONLY inside the current directory (a git worktree on branch ${branch}).`,
     `- Never modify anything under .troupe/ - that is coordination state, not your workspace.`,
-    `- Prefer committing your changes with git as you go; uncommitted changes will be committed for you.`,
+    `- Do NOT run git commit or git push; just edit files. The runner commits your changes when you finish.`,
     ``,
     `# Report`,
     `End your reply with exactly this structure:`,

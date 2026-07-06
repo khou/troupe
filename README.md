@@ -70,6 +70,21 @@ Any agent that can run a CLI can also participate with **no adapter at all**:
 `troupe instructions` prints the protocol (`.troupe/PROTOCOL.md`), and `init`
 pins a 5-line pointer into `AGENTS.md`.
 
+## Cost
+
+Prompt caching is automatic: Claude Code applies it inside every headless run,
+and receipts record the cache read/write split so you can see it. What you
+control: each run is a fresh session (the first turn pays the cache-write cost
+for the system prompt), and the model is your CLI default unless you pin one.
+For small tasks, pin a cheaper model per agent in `.troupe/config.json`:
+
+```json
+"agents": { "claude-code": { "adapter": "claude-code", "model": "claude-sonnet-5" } }
+```
+
+Receipts on every proposal show `total_cost_usd`, turns, and cache usage, so
+expensive task shapes are visible instead of surprising.
+
 ## Security posture (read this)
 
 Task files are prompts that run with the runner's credentials. **Never run

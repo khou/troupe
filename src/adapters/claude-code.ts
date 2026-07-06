@@ -12,6 +12,9 @@ import type { Adapter, AdapterResult, AdapterRunInput } from './types.js';
 
 export function buildClaudeArgs(prompt: string, config: AgentConfig): string[] {
   const args = ['-p', prompt, '--output-format', 'json', '--permission-mode', 'acceptEdits'];
+  if (config.model) {
+    args.push('--model', config.model);
+  }
   if (config.allowedTools && config.allowedTools.length > 0) {
     args.push('--allowedTools', config.allowedTools.join(','));
   }
@@ -25,6 +28,21 @@ export function parseClaudeJson(stdout: string): { result?: string; meta: Record
     const meta: Record<string, unknown> = {};
     for (const k of ['total_cost_usd', 'duration_ms', 'num_turns', 'session_id', 'is_error', 'subtype']) {
       if (parsed[k] !== undefined) meta[k] = parsed[k];
+    }
+    // Cache economics belong in the receipt: fresh sessions pay cache WRITES
+    // for the system/tool prefix; only intra-session (and <5min back-to-back)
+    // turns get cache READS. Surfacing the split makes cost diagnosable.
+    if (parsed.usage && typeof parsed.usage === 'object') {
+      const u = parsed.usage as Record<string, unknown>;
+      meta.usage = {
+        input_tokens: u.input_tokens,
+        output_tokens: u.output_tokens,
+        cache_read_input_tokens: u.cache_read_input_tokens,
+        cache_creation_input_tokens: u.cache_creation_input_tokens,
+      };
+    }
+    if (parsed.modelUsage && typeof parsed.modelUsage === 'object') {
+      meta.models = Object.keys(parsed.modelUsage as Record<string, unknown>);
     }
     return { result: typeof parsed.result === 'string' ? parsed.result : undefined, meta };
   } catch {

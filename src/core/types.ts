@@ -121,6 +121,7 @@ export interface TroupeConfig {
 export interface AgentConfig {
   adapter: string;                 // module key: "claude-code" | "fake" | ...
   command?: string;                // override binary, e.g. "claude"
+  model?: string;                  // e.g. "claude-sonnet-5" - the biggest cost lever for small tasks
   args?: string[];                 // extra args
   allowedTools?: string[];         // passed through to the adapter
 }

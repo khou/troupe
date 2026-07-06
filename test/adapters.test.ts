@@ -82,23 +82,31 @@ describe('claude-code adapter plumbing', () => {
     expect(args).toEqual(['-p', 'do it', '--output-format', 'json', '--permission-mode', 'acceptEdits']);
   });
 
-  it('passes allowedTools and extra args through', () => {
+  it('passes model, allowedTools, and extra args through', () => {
     const args = buildClaudeArgs('x', {
       adapter: 'claude-code',
+      model: 'claude-sonnet-5',
       allowedTools: ['Edit', 'Bash(git *)'],
-      args: ['--model', 'claude-sonnet-5'],
+      args: ['--verbose'],
     });
-    expect(args.join(' ')).toContain('--allowedTools Edit,Bash(git *)');
     expect(args.join(' ')).toContain('--model claude-sonnet-5');
+    expect(args.join(' ')).toContain('--allowedTools Edit,Bash(git *)');
+    expect(args.join(' ')).toContain('--verbose');
   });
 
-  it('parses claude JSON output and extracts audit meta', () => {
+  it('parses claude JSON output and extracts audit meta including cache usage', () => {
     const { result, meta } = parseClaudeJson(
-      JSON.stringify({ result: 'Did the task.', total_cost_usd: 0.12, num_turns: 4, is_error: false }),
+      JSON.stringify({
+        result: 'Did the task.', total_cost_usd: 0.12, num_turns: 4, is_error: false,
+        usage: { input_tokens: 900, output_tokens: 200, cache_read_input_tokens: 14000, cache_creation_input_tokens: 3000 },
+        modelUsage: { 'claude-sonnet-5': {} },
+      }),
     );
     expect(result).toBe('Did the task.');
     expect(meta.total_cost_usd).toBe(0.12);
     expect(meta.num_turns).toBe(4);
+    expect((meta.usage as Record<string, number>).cache_read_input_tokens).toBe(14000);
+    expect(meta.models).toEqual(['claude-sonnet-5']);
   });
 
   it('tolerates non-JSON output', () => {

@@ -6,11 +6,21 @@ No server, no accounts, no new API keys.
 
 Your agents do the work; your team decides what ships; git carries the state.
 
+## Install
+
+Not on npm yet; install straight from GitHub (Node >= 20):
+
+```bash
+npm install -g github:khou/troupe   # builds on install, puts `troupe` on your PATH
+```
+
+Or from a clone: `git clone https://github.com/khou/troupe && cd troupe && npm install && npm link`.
+
 ## Quickstart (5 minutes, works offline)
 
 ```bash
 cd your-repo
-npx troupe@latest init     # zero questions; detects claude/codex on PATH
+troupe init                # zero questions; detects claude/codex on PATH
 troupe run --demo          # full loop with the built-in offline agent (free, seconds)
 troupe review              # read the proposal it produced
 troupe approve <id>        # your git identity is the signature

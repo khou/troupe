@@ -22,18 +22,19 @@ reserves the bare name. GitHub install works too: `npm install -g github:khou/tr
 
 ```bash
 cd your-repo
-trupe init                # zero questions; detects claude/codex on PATH
+trupe init                # zero questions; detects claude/cursor on PATH
 trupe run --demo          # full loop with the built-in offline agent (free, seconds)
 trupe review              # read the proposal it produced
 trupe approve <id>        # your git identity is the signature
 trupe board               # local dashboard at localhost:4517
 ```
 
-Then the same loop with a real agent (uses your existing `claude` login):
+Then the same loop with a real agent (uses your existing `claude` or `cursor-agent` login):
 
 ```bash
 trupe task add "Fix the flaky test in auth/" --body "It fails 1 in 5 runs on CI."
-trupe run                 # claims the task, runs Claude Code headless in a worktree
+trupe run                 # claims the task, runs the agent headless in a worktree
+trupe run --agent cursor  # or pin Cursor explicitly
 trupe review              # proposal + diffstat + receipt (model, cost, duration)
 trupe approve <id>        # then: git merge trupe/<task-id>, trupe mark <id> done
 ```
@@ -75,6 +76,7 @@ trupe approve <id>        # their approval, their identity, merged by git like c
 | adapter | status | notes |
 |---|---|---|
 | `claude-code` | ✅ | headless `claude -p`, JSON output, cost/session in receipts |
+| `cursor` | ✅ | headless `cursor-agent -p`, JSON output, session/duration in receipts |
 | `fake` | ✅ | offline, deterministic; powers the demo and CI |
 | `codex` / `gemini` / `aider` | planned | adapter interface is 3 functions; PRs welcome |
 
@@ -91,7 +93,10 @@ for the system prompt), and the model is your CLI default unless you pin one.
 For small tasks, pin a cheaper model per agent in `.trupe/config.json`:
 
 ```json
-"agents": { "claude-code": { "adapter": "claude-code", "model": "claude-sonnet-5" } }
+"agents": {
+  "claude-code": { "adapter": "claude-code", "model": "claude-sonnet-5" },
+  "cursor": { "adapter": "cursor", "model": "composer-2.5" }
+}
 ```
 
 Receipts on every proposal show `total_cost_usd`, turns, and cache usage, so
@@ -134,5 +139,5 @@ trupe instructions          the agent-facing protocol
   UIs with local state. trupe is the layer between *people*: shared queue,
   attributed approvals, audit - and it composes with any of them.
 
-MIT. Built with tests: `npm test` (41 passing, including a two-clone team
+MIT. Built with tests: `npm test` (45 passing, including a two-clone team
 e2e and cross-machine claim races against a bare remote).

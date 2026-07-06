@@ -79,7 +79,7 @@ async function cmdInit(flags: Flags): Promise<void> {
   if (!gitVersion) fail('git not found on PATH');
 
   const config = initTrupe(root, {
-    defaultAgent: typeof flags.agent === 'string' ? flags.agent : undefined,
+    defaultAgent: typeof flags.agent === 'string' ? flags.agent : await pickDefaultAgent(),
   });
   writeProtocol(root);
   const pin = pinAgentsMd(root);
@@ -132,6 +132,15 @@ function findGitRoot(from: string): string | null {
     if (parent === dir) return null;
     dir = parent;
   }
+}
+
+/** Prefer the first real adapter found on PATH (claude-code, then cursor). */
+async function pickDefaultAgent(): Promise<string> {
+  for (const name of ['claude-code', 'cursor']) {
+    const reason = await getAdapter(name).available();
+    if (!reason) return name;
+  }
+  return 'claude-code';
 }
 
 function safeExec(cmd: string, args: string[]): string | null {

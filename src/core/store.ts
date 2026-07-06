@@ -89,6 +89,7 @@ export function initTrupe(root: string, opts: InitOptions = {}): TrupeConfig {
     requireApproval: opts.requireApproval ?? true,
     agents: {
       'claude-code': { adapter: 'claude-code' },
+      cursor: { adapter: 'cursor' },
       fake: { adapter: 'fake' },
     },
   };

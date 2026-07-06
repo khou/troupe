@@ -3,6 +3,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { buildClaudeArgs, parseClaudeJson } from '../dist/adapters/claude-code.js';
+import { buildCursorArgs, parseCursorJson } from '../dist/adapters/cursor.js';
 import { fakeAdapter } from '../dist/adapters/fake.js';
 import { getAdapter, listAdapters } from '../dist/adapters/index.js';
 
@@ -20,6 +21,7 @@ describe('registry', () => {
   it('resolves known adapters and rejects unknown ones', () => {
     expect(getAdapter('fake').name).toBe('fake');
     expect(getAdapter('claude-code').name).toBe('claude-code');
+    expect(getAdapter('cursor').name).toBe('cursor');
     expect(() => getAdapter('gpt-9')).toThrow(/unknown adapter/);
     expect(listAdapters().map((a) => a.name)).toContain('fake');
   });
@@ -113,5 +115,47 @@ describe('claude-code adapter plumbing', () => {
     const { result, meta } = parseClaudeJson('plain text');
     expect(result).toBeUndefined();
     expect(meta).toEqual({});
+  });
+});
+
+describe('cursor adapter plumbing', () => {
+  it('builds headless args with workspace and trust', () => {
+    const args = buildCursorArgs('do it', { adapter: 'cursor' }, '/tmp/ws');
+    expect(args).toEqual([
+      '-p', '--trust', '--force', '--output-format', 'json', '--workspace', '/tmp/ws', 'do it',
+    ]);
+  });
+
+  it('passes model and extra args through before the prompt', () => {
+    const args = buildCursorArgs('x', {
+      adapter: 'cursor',
+      model: 'composer-2.5',
+      args: ['--approve-mcps'],
+    }, '/repo');
+    expect(args.join(' ')).toContain('--model composer-2.5');
+    expect(args.join(' ')).toContain('--approve-mcps');
+    expect(args.at(-1)).toBe('x');
+  });
+
+  it('parses cursor JSON output and normalizes usage fields', () => {
+    const { result, meta } = parseCursorJson(
+      JSON.stringify({
+        type: 'result', subtype: 'success', result: 'Done.', is_error: false,
+        duration_ms: 5000, session_id: 'abc',
+        usage: { inputTokens: 100, outputTokens: 20, cacheReadTokens: 50, cacheWriteTokens: 10 },
+        model: 'composer-2.5',
+      }),
+    );
+    expect(result).toBe('Done.');
+    expect(meta.duration_ms).toBe(5000);
+    expect(meta.session_id).toBe('abc');
+    expect((meta.usage as Record<string, number>).input_tokens).toBe(100);
+    expect((meta.usage as Record<string, number>).cache_read_input_tokens).toBe(50);
+    expect(meta.models).toEqual(['composer-2.5']);
+  });
+
+  it('uses the last JSON line when stdout has noise', () => {
+    const { result } = parseCursorJson('log line\n{"result":"ok","is_error":false}\n');
+    expect(result).toBe('ok');
   });
 });

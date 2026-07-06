@@ -119,7 +119,7 @@ export interface TrupeConfig {
 }
 
 export interface AgentConfig {
-  adapter: string;                 // module key: "claude-code" | "fake" | ...
+  adapter: string;                 // module key: "claude-code" | "cursor" | "fake" | ...
   command?: string;                // override binary, e.g. "claude"
   model?: string;                  // e.g. "claude-sonnet-5" - the biggest cost lever for small tasks
   args?: string[];                 // extra args

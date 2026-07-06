@@ -52,7 +52,7 @@ path — do not hand-create claim/decision files).
  */
 export function agentsMdBlock(): string {
   return `${BEGIN}
-This repo uses [troupe](https://github.com/tokonoma-ai/troupe) to coordinate agent work
+This repo uses [troupe](https://github.com/khou/troupe) to coordinate agent work
 (tasks, proposals, human approvals) via files in \`.troupe/\` and the \`troupe\` CLI.
 Only when explicitly asked to work on troupe tasks: run \`troupe instructions\` first
 and follow it. Do not create or edit files under \`.troupe/\` by hand.

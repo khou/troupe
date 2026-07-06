@@ -100,7 +100,7 @@ export function initTroupe(root: string, opts: InitOptions = {}): TroupeConfig {
   fs.writeFileSync(path.join(dir, '.gitignore'), 'worktrees/\n');
   fs.writeFileSync(
     path.join(dir, 'README.md'),
-    '# .troupe\n\nGit-native state for [troupe](https://github.com/tokonoma-ai/troupe): tasks, claims, proposals,\ndecisions, and run logs, all as create-only files that merge cleanly.\nCommit this directory like code. Do not hand-edit files under claims/,\ndecisions/, or marks/ — use the `troupe` CLI.\n',
+    '# .troupe\n\nGit-native state for [troupe](https://github.com/khou/troupe): tasks, claims, proposals,\ndecisions, and run logs, all as create-only files that merge cleanly.\nCommit this directory like code. Do not hand-edit files under claims/,\ndecisions/, or marks/ — use the `troupe` CLI.\n',
   );
   return config;
 }

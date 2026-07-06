@@ -3,7 +3,15 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { parseDoc, serializeDoc, type Frontmatter } from './frontmatter.js';
-import { ulid } from './id.js';
+import { ulid, ulidTime } from './id.js';
+
+/**
+ * A claim only holds a task in `claimed` for this long. A crashed or wedged
+ * runner therefore releases its task by doing nothing — no lock server, no
+ * cleanup step, and every machine computes the same expiry from the claim's
+ * own ULID timestamp.
+ */
+export const CLAIM_TTL_MS = 24 * 60 * 60 * 1000;
 import type {
   Claim,
   Decision,
@@ -87,6 +95,8 @@ export function initTroupe(root: string, opts: InitOptions = {}): TroupeConfig {
     fs.mkdirSync(path.join(dir, sub), { recursive: true });
   }
   fs.writeFileSync(path.join(dir, 'config.json'), JSON.stringify(config, null, 2) + '\n');
+  // Worktrees are scratch space on the local machine, never shared state.
+  fs.writeFileSync(path.join(dir, '.gitignore'), 'worktrees/\n');
   fs.writeFileSync(
     path.join(dir, 'README.md'),
     '# .troupe\n\nGit-native state for [troupe](https://github.com/tokonoma-ai/troupe): tasks, claims, proposals,\ndecisions, and run logs, all as create-only files that merge cleanly.\nCommit this directory like code. Do not hand-edit files under claims/,\ndecisions/, or marks/ — use the `troupe` CLI.\n',
@@ -338,7 +348,8 @@ export function getTaskView(root: string, taskId: string): TaskView {
   const decisions = listDecisions(root, taskId);
   const marks = listMarks(root, taskId);
 
-  const winningClaim = claims[0]; // lowest ULID wins
+  const freshClaims = claims.filter((c) => Date.now() - ulidTime(c.id) < CLAIM_TTL_MS);
+  const winningClaim = freshClaims[0] ?? claims[0]; // lowest ULID wins; stale ones only matter for attribution
   // Per proposal, the earliest decision is binding; later ones are recorded but inert.
   const bindingByProposal = new Map<string, Decision>();
   for (const d of decisions) {
@@ -358,10 +369,10 @@ export function getTaskView(root: string, taskId: string): TaskView {
   } else if (proposals.length > 0) {
     const allRejected = proposals.every((p) => bindingByProposal.get(p.id)?.verdict === 'reject');
     status = allRejected ? 'rejected' : 'proposed';
-  } else if (claims.length > 0) {
+  } else if (freshClaims.length > 0) {
     status = 'claimed';
   } else {
-    status = 'open';
+    status = 'open'; // stale claims release the task automatically
   }
 
   return { task, status, claims, winningClaim, proposals, decisions, winningDecision };

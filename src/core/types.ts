@@ -64,6 +64,12 @@ export interface Decision {
   id: string;
   taskId: string;
   proposalId: string;
+  /**
+   * SHA-256 of the proposal file content at review time. A decision only
+   * counts while the proposal still hashes to this — you approved a document,
+   * not a document ID that can change under your vote.
+   */
+  contentSha: string;
   verdict: 'approve' | 'reject';
   decider: string;        // human identity
   note?: string;
@@ -93,8 +99,15 @@ export interface TaskView {
   claims: Claim[];
   winningClaim?: Claim;
   proposals: Proposal[];
+  /** Proposal ids whose claim lost the race: visible, salvageable, never decidable. */
+  contestedProposalIds: string[];
   decisions: Decision[];
   winningDecision?: Decision;
+  /**
+   * Human-readable anomalies the fold refuses to hide: stale votes (content
+   * changed under a decision), conflicting verdicts, contested proposals.
+   */
+  conflicts: string[];
 }
 
 export interface TroupeConfig {

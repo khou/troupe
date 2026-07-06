@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
@@ -264,11 +265,17 @@ export interface DecideInput {
   note?: string;
 }
 
+export function proposalContentSha(root: string, taskId: string, proposalId: string): string {
+  const raw = fs.readFileSync(troupePath(root, 'proposals', taskId, `${proposalId}.md`));
+  return createHash('sha256').update(raw).digest('hex');
+}
+
 export function decide(root: string, input: DecideInput): Decision {
   const decision: Decision = {
     id: ulid(),
     taskId: input.taskId,
     proposalId: input.proposalId,
+    contentSha: proposalContentSha(root, input.taskId, input.proposalId),
     verdict: input.verdict,
     decider: input.decider ?? humanIdentity(root),
     note: input.note,
@@ -347,15 +354,45 @@ export function getTaskView(root: string, taskId: string): TaskView {
   const proposals = listProposals(root, taskId);
   const decisions = listDecisions(root, taskId);
   const marks = listMarks(root, taskId);
+  const conflicts: string[] = [];
 
   const freshClaims = claims.filter((c) => Date.now() - ulidTime(c.id) < CLAIM_TTL_MS);
   const winningClaim = freshClaims[0] ?? claims[0]; // lowest ULID wins; stale ones only matter for attribution
-  // Per proposal, the earliest decision is binding; later ones are recorded but inert.
+
+  // FENCING: a proposal from a losing claim is visible but never decidable —
+  // the zombie-runner result cannot ship (it may still be salvaged by a human).
+  const contestedProposalIds = proposals
+    .filter((p) => p.claimId && winningClaim && p.claimId !== winningClaim.id
+      && claims.some((c) => c.id === p.claimId))
+    .map((p) => p.id);
+  for (const id of contestedProposalIds) {
+    conflicts.push(`proposal ${id} is contested: its claim lost the race`);
+  }
+  const decidable = proposals.filter((p) => !contestedProposalIds.includes(p.id));
+
+  // CONTENT PINNING: a decision binds only while the proposal still hashes to
+  // what the decider actually reviewed. Among valid decisions, the earliest
+  // per proposal is binding; later conflicting verdicts surface as conflicts.
+  const currentSha = new Map<string, string>(
+    proposals.map((p) => [p.id, proposalContentSha(root, taskId, p.id)]),
+  );
   const bindingByProposal = new Map<string, Decision>();
   for (const d of decisions) {
-    if (!bindingByProposal.has(d.proposalId)) bindingByProposal.set(d.proposalId, d);
+    if (d.contentSha && d.contentSha !== currentSha.get(d.proposalId)) {
+      conflicts.push(`stale vote: ${d.decider} ${d.verdict}d proposal ${d.proposalId} before its content changed`);
+      continue;
+    }
+    const existing = bindingByProposal.get(d.proposalId);
+    if (!existing) {
+      bindingByProposal.set(d.proposalId, d);
+    } else if (existing.verdict !== d.verdict) {
+      conflicts.push(
+        `conflicting decisions on proposal ${d.proposalId}: ${existing.decider} ${existing.verdict} (binding) vs ${d.decider} ${d.verdict}`,
+      );
+    }
   }
-  const approvals = proposals
+
+  const approvals = decidable
     .map((p) => bindingByProposal.get(p.id))
     .filter((d): d is Decision => !!d && d.verdict === 'approve');
   const winningDecision = approvals[0];
@@ -366,8 +403,8 @@ export function getTaskView(root: string, taskId: string): TaskView {
     status = terminalMark.state;
   } else if (winningDecision) {
     status = 'approved';
-  } else if (proposals.length > 0) {
-    const allRejected = proposals.every((p) => bindingByProposal.get(p.id)?.verdict === 'reject');
+  } else if (decidable.length > 0) {
+    const allRejected = decidable.every((p) => bindingByProposal.get(p.id)?.verdict === 'reject');
     status = allRejected ? 'rejected' : 'proposed';
   } else if (freshClaims.length > 0) {
     status = 'claimed';
@@ -375,7 +412,10 @@ export function getTaskView(root: string, taskId: string): TaskView {
     status = 'open'; // stale claims release the task automatically
   }
 
-  return { task, status, claims, winningClaim, proposals, decisions, winningDecision };
+  return {
+    task, status, claims, winningClaim, proposals, contestedProposalIds,
+    decisions, winningDecision, conflicts,
+  };
 }
 
 export function listTaskViews(root: string): TaskView[] {

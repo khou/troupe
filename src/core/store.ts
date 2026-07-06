@@ -8,7 +8,7 @@ import { ulid, ulidTime } from './id.js';
 
 /**
  * A claim only holds a task in `claimed` for this long. A crashed or wedged
- * runner therefore releases its task by doing nothing — no lock server, no
+ * runner therefore releases its task by doing nothing - no lock server, no
  * cleanup step, and every machine computes the same expiry from the claim's
  * own ULID timestamp.
  */
@@ -41,7 +41,7 @@ export function findRoot(from: string = process.cwd()): string | null {
 export function requireRoot(from?: string): string {
   const root = findRoot(from);
   if (!root) {
-    throw new Error(`no ${TROUPE_DIR}/ found here or above — run \`troupe init\` first`);
+    throw new Error(`no ${TROUPE_DIR}/ found here or above - run \`troupe init\` first`);
   }
   return root;
 }
@@ -57,7 +57,7 @@ export function humanIdentity(root: string): string {
     const email = execFileSync('git', ['config', 'user.email'], { cwd: root }).toString().trim();
     if (name) return email ? `${name} <${email}>` : name;
   } catch {
-    // not a git repo or no config — fall through
+    // not a git repo or no config - fall through
   }
   return os.userInfo().username;
 }
@@ -100,7 +100,7 @@ export function initTroupe(root: string, opts: InitOptions = {}): TroupeConfig {
   fs.writeFileSync(path.join(dir, '.gitignore'), 'worktrees/\n');
   fs.writeFileSync(
     path.join(dir, 'README.md'),
-    '# .troupe\n\nGit-native state for [troupe](https://github.com/khou/troupe): tasks, claims, proposals,\ndecisions, and run logs, all as create-only files that merge cleanly.\nCommit this directory like code. Do not hand-edit files under claims/,\ndecisions/, or marks/ — use the `troupe` CLI.\n',
+    '# .troupe\n\nGit-native state for [troupe](https://github.com/khou/troupe): tasks, claims, proposals,\ndecisions, and run logs, all as create-only files that merge cleanly.\nCommit this directory like code. Do not hand-edit files under claims/,\ndecisions/, or marks/ - use the `troupe` CLI.\n',
   );
   return config;
 }
@@ -366,7 +366,7 @@ export function getTaskView(root: string, taskId: string): TaskView {
   const freshClaims = claims.filter((c) => Date.now() - ulidTime(c.id) < CLAIM_TTL_MS);
   const winningClaim = freshClaims[0] ?? claims[0]; // lowest ULID wins; stale ones only matter for attribution
 
-  // FENCING: a proposal from a losing claim is visible but never decidable —
+  // FENCING: a proposal from a losing claim is visible but never decidable -
   // the zombie-runner result cannot ship (it may still be salvaged by a human).
   const contestedProposalIds = proposals
     .filter((p) => p.claimId && winningClaim && p.claimId !== winningClaim.id

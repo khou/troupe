@@ -10,7 +10,7 @@ const END = '<!-- troupe:end -->';
 /**
  * The agent-facing contract. Generated (never hand-edited) so the text and the
  * validating code ship from the same package and cannot drift. Mutations go
- * through the CLI — one claim mechanism, one code path; files are for reading.
+ * through the CLI - one claim mechanism, one code path; files are for reading.
  */
 export function protocolMarkdown(): string {
   return `# troupe protocol v${PROTOCOL_VERSION}
@@ -18,7 +18,7 @@ export function protocolMarkdown(): string {
 This repository coordinates work between humans and coding agents through
 files under \`.troupe/\` and the \`troupe\` CLI. Read state from files; make
 ALL mutations through the CLI (this keeps one claim mechanism and one audit
-path — do not hand-create claim/decision files).
+path - do not hand-create claim/decision files).
 
 ## Read
 
@@ -33,12 +33,12 @@ path — do not hand-create claim/decision files).
 - Take a task:        \`troupe run --task <id>\`   (claims, runs you in a worktree, proposes)
 - File new work:      \`troupe task add "title" --body "details"\`
 - If you cannot run the CLI: do the work on a branch and state clearly in
-  your report that the task was NOT claimed — a human will reconcile.
+  your report that the task was NOT claimed - a human will reconcile.
 
 ## Rules
 
 - Never modify \`.troupe/\` contents directly; especially never write files
-  under \`.troupe/decisions/\` — approvals belong to humans.
+  under \`.troupe/decisions/\` - approvals belong to humans.
 - Work only inside the worktree/branch you were given.
 - End every run with the report structure you were prompted with
   (Summary / What changed / How to verify / Risks).

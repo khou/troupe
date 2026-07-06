@@ -3,20 +3,20 @@
  *
  * Design rule that everything else follows from: files are CREATE-ONLY
  * wherever two parties could otherwise race. Mutable state (a task's status)
- * is never stored — it is DERIVED by folding create-only records, so any two
+ * is never stored - it is DERIVED by folding create-only records, so any two
  * teammates who have pulled the same commits compute the same truth and git
  * merges never conflict on troupe state:
  *
  *   .troupe/
- *     config.json                     — created by init, edited rarely by humans
- *     tasks/<ulid>.md                 — one file per task, written once by its author
- *     claims/<taskId>/<ulid>.json     — one file per claim attempt (create-only)
- *     proposals/<taskId>/<ulid>.md    — one file per proposal (create-only)
- *     decisions/<taskId>/<ulid>.json  — one file per human decision (create-only)
- *     runs/<taskId>/<ulid>.jsonl      — per-run agent transcript metadata (single writer)
+ *     config.json                     - created by init, edited rarely by humans
+ *     tasks/<ulid>.md                 - one file per task, written once by its author
+ *     claims/<taskId>/<ulid>.json     - one file per claim attempt (create-only)
+ *     proposals/<taskId>/<ulid>.md    - one file per proposal (create-only)
+ *     decisions/<taskId>/<ulid>.json  - one file per human decision (create-only)
+ *     runs/<taskId>/<ulid>.jsonl      - per-run agent transcript metadata (single writer)
  *
  * Deterministic conflict resolution: where two create-only records compete
- * (two claims, two decisions), the lowest ULID wins — both machines agree
+ * (two claims, two decisions), the lowest ULID wins - both machines agree
  * without coordinating.
  */
 
@@ -66,7 +66,7 @@ export interface Decision {
   proposalId: string;
   /**
    * SHA-256 of the proposal file content at review time. A decision only
-   * counts while the proposal still hashes to this — you approved a document,
+   * counts while the proposal still hashes to this - you approved a document,
    * not a document ID that can change under your vote.
    */
   contentSha: string;

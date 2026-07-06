@@ -4,7 +4,7 @@ import type { AgentConfig } from '../core/types.js';
  * An adapter drives one coding-agent runtime, headlessly, inside a prepared
  * workspace (a git worktree on the task's branch). It gets a single composed
  * prompt and must come back with a proposal-shaped result. Adapters never
- * touch .troupe/ themselves — the runner owns state; adapters own the agent.
+ * touch .troupe/ themselves - the runner owns state; adapters own the agent.
  */
 export interface AdapterRunInput {
   /** Absolute path of the workspace the agent may modify. */

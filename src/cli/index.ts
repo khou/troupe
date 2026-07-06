@@ -63,7 +63,7 @@ function short(id: string): string {
 function statusLine(v: TaskView): string {
   const bits = [`[${v.status}]`, short(v.task.id), v.task.title];
   if (v.winningClaim && v.status === 'claimed') bits.push(`(${v.winningClaim.runner})`);
-  if (v.proposals.length) bits.push(`— ${v.proposals.length} proposal(s)`);
+  if (v.proposals.length) bits.push(`- ${v.proposals.length} proposal(s)`);
   return bits.join(' ');
 }
 
@@ -72,7 +72,7 @@ function statusLine(v: TaskView): string {
 async function cmdInit(flags: Flags): Promise<void> {
   const cwd = process.cwd();
   const inRepo = fs.existsSync(path.join(cwd, '.git')) || findGitRoot(cwd) !== null;
-  if (!inRepo) fail('not inside a git repository — run `git init` first');
+  if (!inRepo) fail('not inside a git repository - run `git init` first');
   const root = findGitRoot(cwd) ?? cwd;
 
   const gitVersion = safeExec('git', ['--version']);
@@ -102,7 +102,7 @@ async function cmdInit(flags: Flags): Promise<void> {
         'Read README.md (if present) and the output of `git ls-files | head -50`.',
         'Propose ONE small, concrete improvement to this repository. Do not make sweeping changes.',
         '',
-        'FAKE:write TROUPE_HELLO.md troupe demo: the loop works — replace me with a real task',
+        'FAKE:write TROUPE_HELLO.md troupe demo: the loop works - replace me with a real task',
       ].join('\n'),
     });
     helloId = hello.id;
@@ -110,10 +110,10 @@ async function cmdInit(flags: Flags): Promise<void> {
 
   console.log(`initialized ${TROUPE_DIR}/ in ${root}`);
   console.log(`  project:       ${config.project}`);
-  console.log(`  default agent: ${config.defaultAgent}${detected.length ? ` (detected: ${detected.join(', ')})` : ' (none detected — demo works offline)'}`);
+  console.log(`  default agent: ${config.defaultAgent}${detected.length ? ` (detected: ${detected.join(', ')})` : ' (none detected - demo works offline)'}`);
   console.log(`  AGENTS.md:     ${pin.created ? 'created with troupe pointer' : pin.updated ? 'troupe pointer pinned' : 'already pinned'}${shim.touched ? ' · CLAUDE.md now imports @AGENTS.md' : ''}`);
   if (await indexDirty(root)) {
-    console.log(`  note: your index has staged changes — troupe committed nothing.`);
+    console.log(`  note: your index has staged changes - troupe committed nothing.`);
   }
   console.log('');
   console.log('next:');
@@ -163,7 +163,7 @@ async function cmdDoctor(): Promise<void> {
   for (const [name, ok, detail] of checks) {
     const mark = ok ? 'ok ' : 'FAIL';
     if (!ok) red++;
-    console.log(`  ${mark}  ${name}${ok ? '' : ` — ${detail}`}`);
+    console.log(`  ${mark}  ${name}${ok ? '' : ` - ${detail}`}`);
   }
   process.exit(red > 0 && !checks[2][1] ? 1 : 0);
 }
@@ -180,7 +180,7 @@ function cmdTaskAdd(positional: string[], flags: Flags): void {
     tags: typeof flags.tag === 'string' ? [flags.tag] : [],
   });
   console.log(`created task ${short(task.id)}: ${task.title}`);
-  console.log(`  file: ${TROUPE_DIR}/tasks/${task.id}.md — edit the body freely before running`);
+  console.log(`  file: ${TROUPE_DIR}/tasks/${task.id}.md - edit the body freely before running`);
 }
 
 function cmdTaskList(flags: Flags): void {
@@ -215,7 +215,7 @@ function cmdTaskShow(positional: string[]): void {
   console.log('');
   console.log(v.task.body || '(no body)');
   for (const p of v.proposals) {
-    const contested = v.contestedProposalIds.includes(p.id) ? ' [CONTESTED — claim lost]' : '';
+    const contested = v.contestedProposalIds.includes(p.id) ? ' [CONTESTED - claim lost]' : '';
     console.log(`\n--- proposal ${short(p.id)} by ${p.runner} (${p.adapter})${contested} ---`);
     console.log(`${p.summary}`);
     if (p.branch) console.log(`branch: ${p.branch}`);
@@ -289,8 +289,8 @@ function cmdReview(flags: Flags): void {
   console.log(`${pending.length} proposal(s) awaiting decision (you are ${humanIdentity(root)}):\n`);
   for (const { view, proposalId } of pending) {
     const p = view.proposals.find((x) => x.id === proposalId)!;
-    console.log(`═══ ${view.task.title} — proposal ${short(p.id)} by ${p.runner} (${p.adapter})`);
-    if (p.branch) console.log(`    branch ${p.branch} — inspect: git diff main...${p.branch}`);
+    console.log(`═══ ${view.task.title} - proposal ${short(p.id)} by ${p.runner} (${p.adapter})`);
+    if (p.branch) console.log(`    branch ${p.branch} - inspect: git diff main...${p.branch}`);
     console.log('');
     console.log(p.body.split('\n').map((l) => `    ${l}`).join('\n'));
     console.log('');
@@ -316,7 +316,7 @@ function resolveProposal(root: string, prefix: string): { taskId: string; propos
   }
   if (matches.length === 1) return matches[0];
   if (matches.length === 0) fail(`no proposal matches "${prefix}"`);
-  fail(`ambiguous "${prefix}" (${matches.length} matches) — use a longer prefix from troupe review`);
+  fail(`ambiguous "${prefix}" (${matches.length} matches) - use a longer prefix from troupe review`);
 }
 
 function cmdDecide(verdict: 'approve' | 'reject', positional: string[], flags: Flags): void {
@@ -363,9 +363,9 @@ async function cmdSync(): Promise<void> {
   if (remote) {
     const branch = await git(root, ['rev-parse', '--abbrev-ref', 'HEAD']);
     const push = await git(root, ['push', 'origin', branch.stdout]);
-    console.log(push.ok ? `pushed ${branch.stdout}` : `push failed: ${push.stderr} — pull/rebase and retry`);
+    console.log(push.ok ? `pushed ${branch.stdout}` : `push failed: ${push.stderr} - pull/rebase and retry`);
   } else {
-    console.log('no remote configured — state is local');
+    console.log('no remote configured - state is local');
   }
 }
 
@@ -373,7 +373,7 @@ function cmdBoard(flags: Flags): void {
   const root = requireRoot();
   const port = typeof flags.port === 'string' ? Number(flags.port) : 4517;
   startBoard(root, port);
-  console.log(`troupe board: http://localhost:${port}  (read-only fold of ${TROUPE_DIR}/ — Ctrl-C to stop)`);
+  console.log(`troupe board: http://localhost:${port}  (read-only fold of ${TROUPE_DIR}/ - Ctrl-C to stop)`);
 }
 
 function cmdInstructions(flags: Flags): void {
@@ -386,7 +386,7 @@ function cmdInstructions(flags: Flags): void {
   console.log(protocolMarkdown());
 }
 
-const HELP = `troupe ${VERSION} — team orchestration for coding agents, in your repo
+const HELP = `troupe ${VERSION} - team orchestration for coding agents, in your repo
 
 usage: troupe <command> [args]
 

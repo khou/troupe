@@ -70,7 +70,7 @@ function renderHtml(project: string, views: TaskView[]): string {
   return `<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>troupe — ${esc(project)}</title>
+<title>troupe - ${esc(project)}</title>
 <style>
   :root { color-scheme: light dark; font-family: ui-sans-serif, system-ui, sans-serif; }
   body { margin: 2rem; }
@@ -89,7 +89,7 @@ function renderHtml(project: string, views: TaskView[]): string {
 <h1>troupe <small>· ${esc(project)} · ${views.length} tasks · rendered ${new Date().toLocaleTimeString()}</small></h1>
 ${conflictBanner}
 <main>${columns || '<p>No tasks yet. <code>troupe task add "your first task"</code></p>'}</main>
-<footer>Read-only fold of <code>.troupe/</code> — refresh for latest. JSON at <a href="/api">/api</a>.</footer>
+<footer>Read-only fold of <code>.troupe/</code> - refresh for latest. JSON at <a href="/api">/api</a>.</footer>
 <script>setTimeout(() => location.reload(), 15000)</script>
 `;
 }

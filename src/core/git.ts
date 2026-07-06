@@ -24,7 +24,7 @@ export async function hasRemote(root: string, remote = 'origin'): Promise<boolea
   return res.ok;
 }
 
-/** True when the user's index has staged entries — troupe must not commit then. */
+/** True when the user's index has staged entries - troupe must not commit then. */
 export async function indexDirty(root: string): Promise<boolean> {
   const res = await git(root, ['diff', '--cached', '--name-only']);
   return res.ok && res.stdout.length > 0;
@@ -33,7 +33,7 @@ export async function indexDirty(root: string): Promise<boolean> {
 /**
  * Commit exactly the given paths (never -A) with troupe's committer identity
  * layered on top of the user's. Refuses when the index already holds staged
- * work — sweeping a user's half-staged changes into a troupe commit is the
+ * work - sweeping a user's half-staged changes into a troupe commit is the
  * verified way to lose someone's afternoon.
  */
 export async function commitPaths(
@@ -85,12 +85,12 @@ export async function pushClaim(
   remote = 'origin',
 ): Promise<ClaimPushResult> {
   if (!(await hasRemote(root, remote))) {
-    return { mode: 'local', won: true, detail: 'no remote configured — claim is provisional to this machine' };
+    return { mode: 'local', won: true, detail: 'no remote configured - claim is provisional to this machine' };
   }
   const head = await git(root, ['rev-parse', 'HEAD']);
-  if (!head.ok) return { mode: 'local', won: true, detail: 'no HEAD commit — claim is provisional' };
+  if (!head.ok) return { mode: 'local', won: true, detail: 'no HEAD commit - claim is provisional' };
   const tree = await git(root, ['rev-parse', 'HEAD^{tree}']);
-  if (!tree.ok) return { mode: 'local', won: true, detail: 'cannot resolve HEAD tree — claim is provisional' };
+  if (!tree.ok) return { mode: 'local', won: true, detail: 'cannot resolve HEAD tree - claim is provisional' };
 
   const commit = await git(root, [
     'commit-tree', tree.stdout, '-p', head.stdout, '-m', `troupe-claim\n\n${claimJson}`,
@@ -107,7 +107,7 @@ export async function pushClaim(
     return { mode: 'remote', won: false, detail: 'another runner holds the claim ref' };
   }
   // Host refused the mechanism itself (rulesets, permissions): degrade loudly.
-  return { mode: 'local', won: true, detail: `claim ref push failed (${firstLine(push.stderr)}) — claim is provisional` };
+  return { mode: 'local', won: true, detail: `claim ref push failed (${firstLine(push.stderr)}) - claim is provisional` };
 }
 
 /** Release = tombstone commit on the ref (ref deletion is often disabled on hosts). */

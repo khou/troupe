@@ -38,7 +38,7 @@ export const claudeCodeAdapter: Adapter = {
   async available(): Promise<string | null> {
     return new Promise((resolve) => {
       const child = spawn('claude', ['--version'], { stdio: ['ignore', 'ignore', 'ignore'] });
-      child.on('error', () => resolve('`claude` CLI not found on PATH — install Claude Code or use --agent fake'));
+      child.on('error', () => resolve('`claude` CLI not found on PATH - install Claude Code or use --agent fake'));
       child.on('exit', (code) => resolve(code === 0 ? null : '`claude --version` failed'));
     });
   },

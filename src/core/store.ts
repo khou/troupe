@@ -172,13 +172,20 @@ export function listTaskIds(root: string): string[] {
     .sort();
 }
 
-/** Resolve a full or prefix task id (like short git hashes). */
-export function resolveTaskId(root: string, idOrPrefix: string): string {
+/**
+ * Resolve a task id by prefix or suffix. Suffix matters: ULIDs minted in the
+ * same millisecond share their leading time chars, so the short form shown to
+ * humans is the entropy TAIL, which is what actually distinguishes records.
+ */
+export function resolveTaskId(root: string, idFragment: string): string {
+  const needle = idFragment.toUpperCase();
   const ids = listTaskIds(root);
-  const matches = ids.filter((id) => id.startsWith(idOrPrefix.toUpperCase()));
+  const exact = ids.find((id) => id === needle);
+  if (exact) return exact;
+  const matches = ids.filter((id) => id.startsWith(needle) || id.endsWith(needle));
   if (matches.length === 1) return matches[0];
-  if (matches.length === 0) throw new Error(`no task matches "${idOrPrefix}"`);
-  throw new Error(`ambiguous task id "${idOrPrefix}" (${matches.length} matches)`);
+  if (matches.length === 0) throw new Error(`no task matches "${idFragment}"`);
+  throw new Error(`ambiguous task id "${idFragment}" (${matches.length} matches)`);
 }
 
 // ---------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 # troupe
 
 Team orchestration for coding agents, in your repo. Tasks, proposals, human
-approvals, and a full audit trail — as files in `.troupe/`, synced by git.
+approvals, and a full audit trail - as files in `.troupe/`, synced by git.
 No server, no accounts, no new API keys.
 
 Your agents do the work; your team decides what ships; git carries the state.
@@ -38,7 +38,7 @@ troupe approve <id>        # their approval, their identity, merged by git like 
 
 - **Everything is a file.** Tasks (`.troupe/tasks/*.md`), claims, proposals,
   decisions, and run receipts are create-only files with ULID names. Status is
-  never stored — it's derived by folding the records, so every clone that has
+  never stored - it's derived by folding the records, so every clone that has
   pulled the same commits computes the same truth, and git merges never
   conflict on troupe state.
 - **Agents run in worktrees.** `troupe run` claims a task, creates a worktree
@@ -47,11 +47,11 @@ troupe approve <id>        # their approval, their identity, merged by git like 
   diffstat and receipt. Your working tree is never touched.
 - **Claims use the remote as the lock.** Claiming pushes an atomic
   create-only ref (`refs/heads/troupe/claims/<task-id>`); two machines racing
-  the same task resolve at the git host — the loser finds out before burning
+  the same task resolve at the git host - the loser finds out before burning
   tokens. No remote? Claims are local and clearly labeled provisional.
 - **Approvals are pinned to content.** A decision records the SHA-256 of the
   proposal it reviewed; if the proposal changes afterward, the vote is marked
-  stale and surfaced — you approved a document, not a filename.
+  stale and surfaced - you approved a document, not a filename.
 - **Zombies can't ship.** A proposal whose claim lost the race renders as
   contested and can't be approved. Conflicts (double decisions, stale votes)
   are shown, never silently resolved.
@@ -95,17 +95,17 @@ troupe instructions          the agent-facing protocol
 
 ## Why not …
 
-- **Agency** — the inspiration (observe → propose → decide → execute, markdown
+- **Agency** - the inspiration (observe → propose → decide → execute, markdown
   state). Single-user by construction: one `decided_by` string, state on one
   laptop, execution inside the dashboard process. troupe is the team version:
   N humans, state in git, execution on any machine. (Clean-room reimplementation;
   Agency is AGPL and its code is untouched.)
-- **GitHub Agentic Workflows** — great inside Actions; requires extension +
+- **GitHub Agentic Workflows** - great inside Actions; requires extension +
   compile + per-engine secrets, and only runs in CI. troupe runs anywhere git
   does, laptops included, and a task can still be drained by CI.
-- **claude-squad / Conductor / vibe-kanban** — excellent single-human runner
+- **claude-squad / Conductor / vibe-kanban** - excellent single-human runner
   UIs with local state. troupe is the layer between *people*: shared queue,
-  attributed approvals, audit — and it composes with any of them.
+  attributed approvals, audit - and it composes with any of them.
 
 MIT. Built with tests: `npm test` (41 passing, including a two-clone team
 e2e and cross-machine claim races against a bare remote).

@@ -7,7 +7,7 @@ import type { Adapter, AdapterResult, AdapterRunInput } from './types.js';
  * in the workspace directory. Permission posture is deliberately conservative:
  * acceptEdits lets the agent edit files in its (worktree) workspace without
  * interactive prompts, while arbitrary Bash stays off unless the user opts in
- * via agents.<name>.allowedTools in .troupe/config.json.
+ * via agents.<name>.allowedTools in .trupe/config.json.
  */
 
 export function buildClaudeArgs(prompt: string, config: AgentConfig): string[] {

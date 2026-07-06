@@ -12,7 +12,7 @@ import type { Adapter, AdapterResult, AdapterRunInput } from './types.js';
  *   FAKE:fail <message>
  *
  * A task with no directives still succeeds with a stub report, so
- * `troupe run --agent fake` always demonstrates the full loop.
+ * `trupe run --agent fake` always demonstrates the full loop.
  */
 export const fakeAdapter: Adapter = {
   name: 'fake',

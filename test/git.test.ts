@@ -33,7 +33,7 @@ let cloneA: string;
 let cloneB: string;
 
 beforeEach(() => {
-  tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'troupe-git-'));
+  tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'trupe-git-'));
   bare = path.join(tmp, 'origin.git');
   fs.mkdirSync(bare);
   execFileSync('git', ['init', '-q', '--bare', bare]);
@@ -95,28 +95,28 @@ describe('claim refs (remote CAS)', () => {
 });
 
 describe('dirty-index safety', () => {
-  it('refuses to commit troupe paths while user work is staged', async () => {
+  it('refuses to commit trupe paths while user work is staged', async () => {
     fs.writeFileSync(path.join(cloneA, 'user-wip.txt'), 'half-finished\n');
     sh(cloneA, ['add', 'user-wip.txt']);
     expect(await indexDirty(cloneA)).toBe(true);
 
-    fs.mkdirSync(path.join(cloneA, '.troupe'), { recursive: true });
-    fs.writeFileSync(path.join(cloneA, '.troupe/x.json'), '{}\n');
-    const res = await commitPaths(cloneA, ['.troupe/x.json'], 'troupe: record');
+    fs.mkdirSync(path.join(cloneA, '.trupe'), { recursive: true });
+    fs.writeFileSync(path.join(cloneA, '.trupe/x.json'), '{}\n');
+    const res = await commitPaths(cloneA, ['.trupe/x.json'], 'trupe: record');
     expect(res.ok).toBe(false);
     expect(res.reason).toContain('staged');
     // The user's staged file was not committed.
-    expect(sh(cloneA, ['log', '--oneline'])).not.toContain('troupe: record');
+    expect(sh(cloneA, ['log', '--oneline'])).not.toContain('trupe: record');
   });
 
   it('commits exactly the given paths on a clean index', async () => {
     fs.writeFileSync(path.join(cloneA, 'unrelated.txt'), 'untracked but unstaged\n');
-    fs.mkdirSync(path.join(cloneA, '.troupe'), { recursive: true });
-    fs.writeFileSync(path.join(cloneA, '.troupe/x.json'), '{}\n');
-    const res = await commitPaths(cloneA, ['.troupe/x.json'], 'troupe: record');
+    fs.mkdirSync(path.join(cloneA, '.trupe'), { recursive: true });
+    fs.writeFileSync(path.join(cloneA, '.trupe/x.json'), '{}\n');
+    const res = await commitPaths(cloneA, ['.trupe/x.json'], 'trupe: record');
     expect(res.ok).toBe(true);
     const shown = sh(cloneA, ['show', '--name-only', '--format=', 'HEAD']);
-    expect(shown).toContain('.troupe/x.json');
+    expect(shown).toContain('.trupe/x.json');
     expect(shown).not.toContain('unrelated.txt');
   });
 });
@@ -124,24 +124,24 @@ describe('dirty-index safety', () => {
 describe('worktrees', () => {
   it('creates, commits inside, and removes a worktree', async () => {
     const wt = path.join(tmp, 'wt-task1');
-    const add = await addWorktree(cloneA, wt, 'troupe/task1');
+    const add = await addWorktree(cloneA, wt, 'trupe/task1');
     expect(add.ok).toBe(true);
 
     fs.writeFileSync(path.join(wt, 'agent-output.txt'), 'work\n');
-    const commit = await commitWorktree(wt, 'troupe: agent work');
+    const commit = await commitWorktree(wt, 'trupe: agent work');
     expect(commit.committed).toBe(true);
     expect(commit.sha).toBeTruthy();
 
     await removeWorktree(cloneA, wt);
     expect(fs.existsSync(wt)).toBe(false);
     // Branch survives worktree removal.
-    expect(sh(cloneA, ['rev-parse', '--verify', 'refs/heads/troupe/task1'])).toBeTruthy();
+    expect(sh(cloneA, ['rev-parse', '--verify', 'refs/heads/trupe/task1'])).toBeTruthy();
   });
 
   it('reports no commit when the agent changed nothing', async () => {
     const wt = path.join(tmp, 'wt-task2');
-    await addWorktree(cloneA, wt, 'troupe/task2');
-    const commit = await commitWorktree(wt, 'troupe: agent work');
+    await addWorktree(cloneA, wt, 'trupe/task2');
+    const commit = await commitWorktree(wt, 'trupe: agent work');
     expect(commit.committed).toBe(false);
     await removeWorktree(cloneA, wt);
   });

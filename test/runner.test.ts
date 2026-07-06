@@ -9,7 +9,7 @@ import {
   createTask,
   decide,
   getTaskView,
-  initTroupe,
+  initTrupe,
   listRunIds,
   readRunEvents,
 } from '../dist/core/store.js';
@@ -24,7 +24,7 @@ let repo: string;
 let repoB: string;
 
 beforeEach(() => {
-  tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'troupe-run-'));
+  tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'trupe-run-'));
   bare = path.join(tmp, 'origin.git');
   fs.mkdirSync(bare);
   execFileSync('git', ['init', '-q', '--bare', bare]);
@@ -39,9 +39,9 @@ beforeEach(() => {
   sh(repo, ['commit', '-qm', 'init']);
   sh(repo, ['remote', 'add', 'origin', bare]);
   sh(repo, ['push', '-q', 'origin', 'main']);
-  initTroupe(repo, { defaultAgent: 'fake' });
-  sh(repo, ['add', '.troupe']);
-  sh(repo, ['commit', '-qm', 'troupe init']);
+  initTrupe(repo, { defaultAgent: 'fake' });
+  sh(repo, ['add', '.trupe']);
+  sh(repo, ['commit', '-qm', 'trupe init']);
 
   repoB = path.join(tmp, 'workB');
   execFileSync('git', ['clone', '-q', bare, repoB]);
@@ -65,9 +65,9 @@ describe('runner', () => {
     if (result.outcome !== 'proposed') return;
 
     // Work landed on the task branch, not on main, and the worktree is gone.
-    expect(fs.existsSync(path.join(repo, '.troupe/worktrees', task.id))).toBe(false);
+    expect(fs.existsSync(path.join(repo, '.trupe/worktrees', task.id))).toBe(false);
     expect(fs.existsSync(path.join(repo, 'greeting.txt'))).toBe(false);
-    const branchFile = sh(repo, ['show', `troupe/${task.id}:greeting.txt`]);
+    const branchFile = sh(repo, ['show', `trupe/${task.id}:greeting.txt`]);
     expect(branchFile).toBe('hello from the fake agent');
 
     // Proposal carries summary, diffstat, and a receipt.
@@ -93,7 +93,7 @@ describe('runner', () => {
 
   it('loses the claim race to another machine and does not run', async () => {
     const task = createTask(repo, { title: 'Contested work', body: 'FAKE:write x.txt x' });
-    sh(repo, ['add', '.troupe']);
+    sh(repo, ['add', '.trupe']);
     sh(repo, ['commit', '-qm', 'task']);
     sh(repo, ['push', '-q', 'origin', 'main']);
 
@@ -103,7 +103,7 @@ describe('runner', () => {
 
     const result = await runTask(repo, { taskId: task.id });
     expect(result.outcome).toBe('claim-lost');
-    expect(fs.existsSync(path.join(repo, '.troupe/worktrees', task.id))).toBe(false);
+    expect(fs.existsSync(path.join(repo, '.trupe/worktrees', task.id))).toBe(false);
   });
 
   it('reports adapter failure and releases the claim', async () => {
@@ -113,7 +113,7 @@ describe('runner', () => {
     if (result.outcome !== 'failed') return;
     expect(result.error).toBe('deliberate');
     // Task is not stuck: another run can claim again once the local claim is superseded remotely.
-    expect(fs.existsSync(path.join(repo, '.troupe/worktrees', task.id))).toBe(false);
+    expect(fs.existsSync(path.join(repo, '.trupe/worktrees', task.id))).toBe(false);
   });
 
   it('contested proposals are fenced out of the decidable set', async () => {
@@ -145,7 +145,7 @@ describe('runner', () => {
     expect(getTaskView(repo, task.id).status).toBe('approved');
 
     // Someone amends the proposal file after the vote.
-    const pPath = path.join(repo, '.troupe/proposals', task.id, `${run.proposal.id}.md`);
+    const pPath = path.join(repo, '.trupe/proposals', task.id, `${run.proposal.id}.md`);
     fs.appendFileSync(pPath, '\n\nAlso: run a schema migration in prod.\n');
 
     const view = getTaskView(repo, task.id);
@@ -155,11 +155,11 @@ describe('runner', () => {
 
   it('composePrompt embeds the brief and the report contract', () => {
     const task = createTask(repo, { title: 'Prompt shape', body: 'Do a thing.' });
-    const prompt = composePrompt(getTaskView(repo, task.id), 'troupe/x');
+    const prompt = composePrompt(getTaskView(repo, task.id), 'trupe/x');
     expect(prompt).toContain('Prompt shape');
     expect(prompt).toContain('Do a thing.');
     expect(prompt).toContain('## Summary');
-    expect(prompt).toContain('.troupe/');
+    expect(prompt).toContain('.trupe/');
   });
 
   it('detects bootstrap commands from lockfiles', () => {

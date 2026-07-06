@@ -12,7 +12,7 @@ import {
   decide,
   findRoot,
   getTaskView,
-  initTroupe,
+  initTrupe,
   listTaskViews,
   markTask,
   readTask,
@@ -22,11 +22,11 @@ import {
 let root: string;
 
 beforeEach(() => {
-  root = fs.mkdtempSync(path.join(os.tmpdir(), 'troupe-test-'));
+  root = fs.mkdtempSync(path.join(os.tmpdir(), 'trupe-test-'));
   execFileSync('git', ['init', '-q'], { cwd: root });
   execFileSync('git', ['config', 'user.name', 'Test Human'], { cwd: root });
   execFileSync('git', ['config', 'user.email', 'test@example.com'], { cwd: root });
-  initTroupe(root);
+  initTrupe(root);
 });
 
 afterEach(() => {
@@ -73,7 +73,7 @@ describe('frontmatter', () => {
 
 describe('store', () => {
   it('init is idempotent', () => {
-    const again = initTroupe(root);
+    const again = initTrupe(root);
     expect(again.version).toBe(1);
     expect(findRoot(path.join(root))).toBe(root);
   });
@@ -113,7 +113,7 @@ describe('store', () => {
       adapter: 'fake',
       summary: 'Did the thing',
       body: '## What\nChanged X.\n',
-      branch: 'troupe/lifecycle',
+      branch: 'trupe/lifecycle',
     });
     expect(getTaskView(root, t.id).status).toBe('proposed');
 

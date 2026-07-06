@@ -1,13 +1,13 @@
 /**
- * troupe's git-native data model.
+ * trupe's git-native data model.
  *
  * Design rule that everything else follows from: files are CREATE-ONLY
  * wherever two parties could otherwise race. Mutable state (a task's status)
  * is never stored - it is DERIVED by folding create-only records, so any two
  * teammates who have pulled the same commits compute the same truth and git
- * merges never conflict on troupe state:
+ * merges never conflict on trupe state:
  *
- *   .troupe/
+ *   .trupe/
  *     config.json                     - created by init, edited rarely by humans
  *     tasks/<ulid>.md                 - one file per task, written once by its author
  *     claims/<taskId>/<ulid>.json     - one file per claim attempt (create-only)
@@ -110,7 +110,7 @@ export interface TaskView {
   conflicts: string[];
 }
 
-export interface TroupeConfig {
+export interface TrupeConfig {
   version: 1;
   project: string;
   defaultAgent: string;            // adapter name

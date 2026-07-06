@@ -22,16 +22,16 @@ import type {
   Task,
   TaskStatus,
   TaskView,
-  TroupeConfig,
+  TrupeConfig,
 } from './types.js';
 
-export const TROUPE_DIR = '.troupe';
+export const TRUPE_DIR = '.trupe';
 
-/** Walk up from cwd to find the directory containing .troupe (like git). */
+/** Walk up from cwd to find the directory containing .trupe (like git). */
 export function findRoot(from: string = process.cwd()): string | null {
   let dir = path.resolve(from);
   for (;;) {
-    if (fs.existsSync(path.join(dir, TROUPE_DIR, 'config.json'))) return dir;
+    if (fs.existsSync(path.join(dir, TRUPE_DIR, 'config.json'))) return dir;
     const parent = path.dirname(dir);
     if (parent === dir) return null;
     dir = parent;
@@ -41,13 +41,13 @@ export function findRoot(from: string = process.cwd()): string | null {
 export function requireRoot(from?: string): string {
   const root = findRoot(from);
   if (!root) {
-    throw new Error(`no ${TROUPE_DIR}/ found here or above - run \`troupe init\` first`);
+    throw new Error(`no ${TRUPE_DIR}/ found here or above - run \`trupe init\` first`);
   }
   return root;
 }
 
-function troupePath(root: string, ...segments: string[]): string {
-  return path.join(root, TROUPE_DIR, ...segments);
+function trupePath(root: string, ...segments: string[]): string {
+  return path.join(root, TRUPE_DIR, ...segments);
 }
 
 /** Human identity from git config; falls back to OS user. */
@@ -77,12 +77,12 @@ export interface InitOptions {
   requireApproval?: boolean;
 }
 
-export function initTroupe(root: string, opts: InitOptions = {}): TroupeConfig {
-  const dir = troupePath(root);
+export function initTrupe(root: string, opts: InitOptions = {}): TrupeConfig {
+  const dir = trupePath(root);
   if (fs.existsSync(path.join(dir, 'config.json'))) {
     return readConfig(root);
   }
-  const config: TroupeConfig = {
+  const config: TrupeConfig = {
     version: 1,
     project: opts.project ?? path.basename(path.resolve(root)),
     defaultAgent: opts.defaultAgent ?? 'claude-code',
@@ -100,14 +100,14 @@ export function initTroupe(root: string, opts: InitOptions = {}): TroupeConfig {
   fs.writeFileSync(path.join(dir, '.gitignore'), 'worktrees/\n');
   fs.writeFileSync(
     path.join(dir, 'README.md'),
-    '# .troupe\n\nGit-native state for [troupe](https://github.com/khou/troupe): tasks, claims, proposals,\ndecisions, and run logs, all as create-only files that merge cleanly.\nCommit this directory like code. Do not hand-edit files under claims/,\ndecisions/, or marks/ - use the `troupe` CLI.\n',
+    '# .trupe\n\nGit-native state for [trupe](https://github.com/khou/trupe): tasks, claims, proposals,\ndecisions, and run logs, all as create-only files that merge cleanly.\nCommit this directory like code. Do not hand-edit files under claims/,\ndecisions/, or marks/ - use the `trupe` CLI.\n',
   );
   return config;
 }
 
-export function readConfig(root: string): TroupeConfig {
-  const raw = fs.readFileSync(troupePath(root, 'config.json'), 'utf8');
-  return JSON.parse(raw) as TroupeConfig;
+export function readConfig(root: string): TrupeConfig {
+  const raw = fs.readFileSync(trupePath(root, 'config.json'), 'utf8');
+  return JSON.parse(raw) as TrupeConfig;
 }
 
 // ---------------------------------------------------------------------------
@@ -143,12 +143,12 @@ export function createTask(root: string, input: CreateTaskInput): Task {
     tags: task.tags,
   };
   if (task.agent) data.agent = task.agent;
-  fs.writeFileSync(troupePath(root, 'tasks', `${task.id}.md`), serializeDoc(data, task.body));
+  fs.writeFileSync(trupePath(root, 'tasks', `${task.id}.md`), serializeDoc(data, task.body));
   return task;
 }
 
 export function readTask(root: string, taskId: string): Task {
-  const raw = fs.readFileSync(troupePath(root, 'tasks', `${taskId}.md`), 'utf8');
+  const raw = fs.readFileSync(trupePath(root, 'tasks', `${taskId}.md`), 'utf8');
   const { data, body } = parseDoc(raw);
   return {
     id: String(data.id ?? taskId),
@@ -163,7 +163,7 @@ export function readTask(root: string, taskId: string): Task {
 }
 
 export function listTaskIds(root: string): string[] {
-  const dir = troupePath(root, 'tasks');
+  const dir = trupePath(root, 'tasks');
   if (!fs.existsSync(dir)) return [];
   return fs
     .readdirSync(dir)
@@ -203,14 +203,14 @@ function readJsonRecords<T>(dir: string): T[] {
 
 export function claimTask(root: string, taskId: string, runner: string, adapter: string): Claim {
   const claim: Claim = { id: ulid(), taskId, runner, adapter, createdAt: new Date().toISOString() };
-  const dir = troupePath(root, 'claims', taskId);
+  const dir = trupePath(root, 'claims', taskId);
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, `${claim.id}.json`), JSON.stringify(claim, null, 2) + '\n');
   return claim;
 }
 
 export function listClaims(root: string, taskId: string): Claim[] {
-  return readJsonRecords<Claim>(troupePath(root, 'claims', taskId));
+  return readJsonRecords<Claim>(trupePath(root, 'claims', taskId));
 }
 
 export interface CreateProposalInput {
@@ -225,7 +225,7 @@ export interface CreateProposalInput {
 
 export function addProposal(root: string, input: CreateProposalInput): Proposal {
   const proposal: Proposal = { id: ulid(), createdAt: new Date().toISOString(), ...input };
-  const dir = troupePath(root, 'proposals', input.taskId);
+  const dir = trupePath(root, 'proposals', input.taskId);
   fs.mkdirSync(dir, { recursive: true });
   const data: Frontmatter = {
     id: proposal.id,
@@ -242,7 +242,7 @@ export function addProposal(root: string, input: CreateProposalInput): Proposal 
 }
 
 export function listProposals(root: string, taskId: string): Proposal[] {
-  const dir = troupePath(root, 'proposals', taskId);
+  const dir = trupePath(root, 'proposals', taskId);
   if (!fs.existsSync(dir)) return [];
   return fs
     .readdirSync(dir)
@@ -273,7 +273,7 @@ export interface DecideInput {
 }
 
 export function proposalContentSha(root: string, taskId: string, proposalId: string): string {
-  const raw = fs.readFileSync(troupePath(root, 'proposals', taskId, `${proposalId}.md`));
+  const raw = fs.readFileSync(trupePath(root, 'proposals', taskId, `${proposalId}.md`));
   return createHash('sha256').update(raw).digest('hex');
 }
 
@@ -288,14 +288,14 @@ export function decide(root: string, input: DecideInput): Decision {
     note: input.note,
     createdAt: new Date().toISOString(),
   };
-  const dir = troupePath(root, 'decisions', input.taskId);
+  const dir = trupePath(root, 'decisions', input.taskId);
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, `${decision.id}.json`), JSON.stringify(decision, null, 2) + '\n');
   return decision;
 }
 
 export function listDecisions(root: string, taskId: string): Decision[] {
-  return readJsonRecords<Decision>(troupePath(root, 'decisions', taskId));
+  return readJsonRecords<Decision>(trupePath(root, 'decisions', taskId));
 }
 
 export function markTask(root: string, taskId: string, state: Mark['state'], note?: string): Mark {
@@ -307,14 +307,14 @@ export function markTask(root: string, taskId: string, state: Mark['state'], not
     note,
     createdAt: new Date().toISOString(),
   };
-  const dir = troupePath(root, 'marks', taskId);
+  const dir = trupePath(root, 'marks', taskId);
   fs.mkdirSync(dir, { recursive: true });
   fs.writeFileSync(path.join(dir, `${mark.id}.json`), JSON.stringify(mark, null, 2) + '\n');
   return mark;
 }
 
 export function listMarks(root: string, taskId: string): Mark[] {
-  return readJsonRecords<Mark>(troupePath(root, 'marks', taskId));
+  return readJsonRecords<Mark>(trupePath(root, 'marks', taskId));
 }
 
 // ---------------------------------------------------------------------------
@@ -322,13 +322,13 @@ export function listMarks(root: string, taskId: string): Mark[] {
 // ---------------------------------------------------------------------------
 
 export function appendRunEvent(root: string, taskId: string, runId: string, event: RunEvent): void {
-  const dir = troupePath(root, 'runs', taskId);
+  const dir = trupePath(root, 'runs', taskId);
   fs.mkdirSync(dir, { recursive: true });
   fs.appendFileSync(path.join(dir, `${runId}.jsonl`), JSON.stringify(event) + '\n');
 }
 
 export function readRunEvents(root: string, taskId: string, runId: string): RunEvent[] {
-  const file = troupePath(root, 'runs', taskId, `${runId}.jsonl`);
+  const file = trupePath(root, 'runs', taskId, `${runId}.jsonl`);
   if (!fs.existsSync(file)) return [];
   return fs
     .readFileSync(file, 'utf8')
@@ -338,7 +338,7 @@ export function readRunEvents(root: string, taskId: string, runId: string): RunE
 }
 
 export function listRunIds(root: string, taskId: string): string[] {
-  const dir = troupePath(root, 'runs', taskId);
+  const dir = trupePath(root, 'runs', taskId);
   if (!fs.existsSync(dir)) return [];
   return fs
     .readdirSync(dir)

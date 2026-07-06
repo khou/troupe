@@ -1,11 +1,11 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { TROUPE_DIR } from './store.js';
+import { TRUPE_DIR } from './store.js';
 
 export const PROTOCOL_VERSION = 1;
 
-const BEGIN = '<!-- troupe:begin -->';
-const END = '<!-- troupe:end -->';
+const BEGIN = '<!-- trupe:begin -->';
+const END = '<!-- trupe:end -->';
 
 /**
  * The agent-facing contract. Generated (never hand-edited) so the text and the
@@ -13,32 +13,32 @@ const END = '<!-- troupe:end -->';
  * through the CLI - one claim mechanism, one code path; files are for reading.
  */
 export function protocolMarkdown(): string {
-  return `# troupe protocol v${PROTOCOL_VERSION}
+  return `# trupe protocol v${PROTOCOL_VERSION}
 
 This repository coordinates work between humans and coding agents through
-files under \`.troupe/\` and the \`troupe\` CLI. Read state from files; make
+files under \`.trupe/\` and the \`trupe\` CLI. Read state from files; make
 ALL mutations through the CLI (this keeps one claim mechanism and one audit
 path - do not hand-create claim/decision files).
 
 ## Read
 
-- Tasks: \`.troupe/tasks/<ulid>.md\` (YAML frontmatter + markdown brief)
-- Proposals: \`.troupe/proposals/<taskId>/<ulid>.md\`
-- Decisions: \`.troupe/decisions/<taskId>/<ulid>.json\`
-- Board: \`troupe task list\` (or \`troupe board\` for humans)
+- Tasks: \`.trupe/tasks/<ulid>.md\` (YAML frontmatter + markdown brief)
+- Proposals: \`.trupe/proposals/<taskId>/<ulid>.md\`
+- Decisions: \`.trupe/decisions/<taskId>/<ulid>.json\`
+- Board: \`trupe task list\` (or \`trupe board\` for humans)
 
 ## Act
 
-- See open work:      \`troupe task list --status open\`
-- Take a task:        \`troupe run --task <id>\`   (claims, runs you in a worktree, proposes)
-- File new work:      \`troupe task add "title" --body "details"\`
+- See open work:      \`trupe task list --status open\`
+- Take a task:        \`trupe run --task <id>\`   (claims, runs you in a worktree, proposes)
+- File new work:      \`trupe task add "title" --body "details"\`
 - If you cannot run the CLI: do the work on a branch and state clearly in
   your report that the task was NOT claimed - a human will reconcile.
 
 ## Rules
 
-- Never modify \`.troupe/\` contents directly; especially never write files
-  under \`.troupe/decisions/\` - approvals belong to humans.
+- Never modify \`.trupe/\` contents directly; especially never write files
+  under \`.trupe/decisions/\` - approvals belong to humans.
 - Work only inside the worktree/branch you were given.
 - End every run with the report structure you were prompted with
   (Summary / What changed / How to verify / Risks).
@@ -52,10 +52,10 @@ path - do not hand-create claim/decision files).
  */
 export function agentsMdBlock(): string {
   return `${BEGIN}
-This repo uses [troupe](https://github.com/khou/troupe) to coordinate agent work
-(tasks, proposals, human approvals) via files in \`.troupe/\` and the \`troupe\` CLI.
-Only when explicitly asked to work on troupe tasks: run \`troupe instructions\` first
-and follow it. Do not create or edit files under \`.troupe/\` by hand.
+This repo uses [trupe](https://github.com/khou/trupe) to coordinate agent work
+(tasks, proposals, human approvals) via files in \`.trupe/\` and the \`trupe\` CLI.
+Only when explicitly asked to work on trupe tasks: run \`trupe instructions\` first
+and follow it. Do not create or edit files under \`.trupe/\` by hand.
 ${END}`;
 }
 
@@ -97,5 +97,5 @@ export function shimClaudeMd(root: string): { touched: boolean } {
 }
 
 export function writeProtocol(root: string): void {
-  fs.writeFileSync(path.join(root, TROUPE_DIR, 'PROTOCOL.md'), protocolMarkdown());
+  fs.writeFileSync(path.join(root, TRUPE_DIR, 'PROTOCOL.md'), protocolMarkdown());
 }

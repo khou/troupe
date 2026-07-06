@@ -1,4 +1,4 @@
-# troupe - team orchestration for coding agents, in your repo
+# trupe - team orchestration for coding agents, in your repo
 
 *Spec v0.1, 2026-07-06. Produced from a 12-agent research/differentiation lab and
 a 3-lens adversarial attack pass (30+ verified findings); attack fixes are
@@ -16,9 +16,9 @@ cloud agents, Devin, Terragon†, gh-aw locks to Actions). The open slot is the
 human decisions, attribution, and audit - coordinated through the git remote
 the team already has.
 
-troupe is that layer. It is deliberately **not** a runner UI, a worktree
-manager, a session multiplexer, or a CI system; those exist and troupe
-composes with them. troupe owns four things:
+trupe is that layer. It is deliberately **not** a runner UI, a worktree
+manager, a session multiplexer, or a CI system; those exist and trupe
+composes with them. trupe owns four things:
 
 1. **The queue** - agent-sized tasks, in the repo.
 2. **The decision layer** - proposals, human approvals with real identity,
@@ -46,19 +46,19 @@ a survivability argument, not just convenience.
   by stakes, and land where the human already lives (the PR) whenever a diff
   exists. One human decision moment per change, never two.
 - **Integration bar: "your agent can run a CLI."** No SDK, no per-tool config
-  format, no compile step. `troupe instructions` prints the whole contract.
+  format, no compile step. `trupe instructions` prints the whole contract.
 - **Trust the diff, not the agent.** Policy is enforced on observed changes
   (glob-match the actual diff) and observed spend (receipts), not on prompt
   text asking nicely.
 - **Never prompt, never guess, never touch what isn't ours.** Headless runs
-  are spawned so they cannot interactively prompt (a prompt is a hang). troupe
+  are spawned so they cannot interactively prompt (a prompt is a hang). trupe
   never stages or commits files it didn't create, and refuses to commit when
   the user's index is dirty.
 
 ## Data model
 
 ```
-.troupe/
+.trupe/
   config.json                    # scalars written at init, rarely edited
   PROTOCOL.md                    # the agent-facing contract (generated, versioned)
   people/<slug>.json             # identity registry: name, emails/aliases, capabilities, caps
@@ -92,25 +92,25 @@ Real teams protect `main`. Committing votes and claims to code branches is
 dead on arrival (rejected pushes) or toxic (merge-queue churn, PR-diff noise,
 CODEOWNERS pings). The verified answer, in two stages:
 
-- **v0.1 (MVP, shipped):** records live in `.troupe/` on the current branch;
-  `troupe sync` commits exactly the record paths (never `-A`) and pushes.
+- **v0.1 (MVP, shipped):** records live in `.trupe/` on the current branch;
+  `trupe sync` commits exactly the record paths (never `-A`) and pushes.
   Correct for solo use, unprotected repos, and the demo. Claims - the one
   record needing *cross-machine mutual exclusion right now* - do not rely on
   branch state at all (next section).
 - **v0.2 (default-on):** all mutable records move to a dedicated orphan branch
-  `troupe/state`, written via plumbing (`commit-tree` + `update-ref`, no
+  `trupe/state`, written via plumbing (`commit-tree` + `update-ref`, no
   checkout, user's working tree untouched), pushed with fetch-retry. Code
   branches keep only `config.json`, `PROTOCOL.md`, `AGENTS.md` pointer, and
   task specs. Effects: no merge-queue entries, no CI burns, no CODEOWNERS
   pings, no PR noise, clean `git log`, mobile web edits land on an
   unprotected branch, and PR merges never touch record files (GitHub ignores
-  merge drivers - verified). `troupe doctor` probes pushability and prints the
+  merge drivers - verified). `trupe doctor` probes pushability and prints the
   exact ruleset exception if blocked.
 
 ### Claims: the remote is the lock server
 
-`troupe claim <task>` performs an atomic compare-and-swap against the git
-remote: push a tiny claim commit to `refs/heads/troupe/claims/<taskId>` with
+`trupe claim <task>` performs an atomic compare-and-swap against the git
+remote: push a tiny claim commit to `refs/heads/trupe/claims/<taskId>` with
 `--force-with-lease=<ref>:` (empty expectation = ref must not exist). Create
 wins exactly once per host semantics; the loser's push is rejected before any
 tokens burn. Namespace is `refs/heads/*` deliberately - custom ref namespaces
@@ -158,7 +158,7 @@ whichever ULID happened to sort first across machines.
 
 Identity comes from `git config` - the same trust model as the team's
 commits, and the spec says so bluntly: *unsigned attribution is exactly as
-strong as push access, no stronger.* What troupe adds:
+strong as push access, no stronger.* What trupe adds:
 
 - `people/<slug>.json` registry with alias lists (laptop email, GitHub
   noreply, CI identity) so one human never folds as two actors, and unknown
@@ -171,9 +171,9 @@ strong as push access, no stronger.* What troupe adds:
   trusted refs (state branch / default branch), never from a running task's
   worktree branch, and a runner refuses any decision that first appears in
   the run it would authorize. Adapter permission rules additionally deny
-  writes to `.troupe/decisions/**`. Task provenance gates auto-claim: the
+  writes to `.trupe/decisions/**`. Task provenance gates auto-claim: the
   runner only self-serves tasks authored by registered people on trusted
-  refs; foreign tasks need explicit `troupe run --task <id>` which prints the
+  refs; foreign tasks need explicit `trupe run --task <id>` which prints the
   full prompt first, defaulting to read-only autonomy. (This is the
   prompt-injection / drive-by-PR RCE answer.)
 
@@ -193,7 +193,7 @@ role archetypes (Builder edits code, Maintainer/Strategist read-only) as
 
 Fixed from Agency (each a documented failure): execution routes by
 **capability, never origin-agent** (their read-only agents got dispatched to
-implement); execution is any machine running `troupe run`, never a background
+implement); execution is any machine running `trupe run`, never a background
 task inside a dashboard process (their dashboard-down = nothing executes);
 attribution is per-person (theirs is one config string, `'admin'`);
 scheduling is CI cron or any teammate's runner, never one laptop's
@@ -202,24 +202,24 @@ from log mtimes that stay green while dispatch is dead.
 
 ### Review, designed for the lead with 15 pending proposals
 
-- `troupe review`: one batch session. Stakes tiers computed from the diff -
+- `trupe review`: one batch session. Stakes tiers computed from the diff -
   S (docs/tests, small, in-scope), M (in-scope code), L (**floor, not
   classifier**: lockfiles, CI/workflow files, dependency manifests,
-  migrations, deletions, `.troupe/`/`AGENTS.md`/hooks paths, secret-pattern
+  migrations, deletions, `.trupe/`/`AGENTS.md`/hooks paths, secret-pattern
   matches - always L regardless of line count; verified anti-gaming fix).
   One-keystroke verdicts; typed agent questions answered in the same pass.
   `--approve-all S` exists only behind an explicit policy opt-in, only for
   allowlisted paths, and every batched verdict still writes an individual
   attributed decision file marked `batch: true`.
 - **One decision moment per change:** where a diff exists, the *draft PR is
-  the proposal* and the PR review is the decision - `troupe sync` backfills
+  the proposal* and the PR review is the decision - `trupe sync` backfills
   attributed decision files from `gh pr view --json reviews` (host-verified
   identity, mobile approval via the GitHub app for free, and the teammate who
-  never installs troupe reviews agent work exactly like human work). The
+  never installs trupe reviews agent work exactly like human work). The
   pre-diff review queue is reserved for decision-shaped items: typed
   questions, direction choices, L-tier plans. This is also the answer to
   "the second human never installs it": her first contact is a PR she already
-  knows how to review; `troupe join` is the moment she wants agents on her
+  knows how to review; `trupe join` is the moment she wants agents on her
   own backlog, not an entry fee.
 
 ### Budgets and consent
@@ -238,10 +238,10 @@ switches.
 ### Getting started: 5 minutes, guaranteed by construction
 
 ```
-npx troupe@latest init     # zero questions
-troupe run --demo          # offline, free, seconds - fake adapter, full loop
-troupe review              # approve your first proposal
-troupe run                 # same loop, real agent (claude detected + smoke-tested)
+npx trupe@latest init     # zero questions
+trupe run --demo          # offline, free, seconds - fake adapter, full loop
+trupe review              # approve your first proposal
+trupe run                 # same loop, real agent (claude detected + smoke-tested)
 ```
 
 - `init` asks nothing: doctor-grade preflight (git ≥ 2.5, repo present, every
@@ -254,26 +254,26 @@ troupe run                 # same loop, real agent (claude detected + smoke-test
 - **First success cannot depend on auth or network:** the built-in `fake`
   adapter completes the entire init → run → review → approve loop offline,
   clearly labeled, so the 5-minute promise survives the corp-proxy laptop
-  with no `claude` login. Real-agent success is step two, via `troupe doctor`.
+  with no `claude` login. Real-agent success is step two, via `trupe doctor`.
 - The seeded hello task is capped by construction: prompt scoped to README +
   truncated `git ls-files`, `--max-turns 8`, 90s stall-kill, streamed
   one-line progress ticker, prints actual cost after. (Verified attack: an
   unbounded "map this repo" demo burns 15 minutes and real dollars on a
   monorepo.)
-- `troupe join` (teammate #2): in a fresh clone, probes local agent CLIs,
+- `trupe join` (teammate #2): in a fresh clone, probes local agent CLIs,
   writes + commits `people/<slug>.json`, prints your inbox and the exact next
   command. Config traveled in the clone; identity is git config; agent auth
   is whatever you already have. No accounts anywhere.
 
 ### Agents integrate by reading one file
 
-`troupe init` writes `PROTOCOL.md` (the full agent-facing contract, generated
+`trupe init` writes `PROTOCOL.md` (the full agent-facing contract, generated
 from the same schema the code validates - they cannot drift) and pins a
 **five-line** pointer into `AGENTS.md` between markers (not the whole
 protocol - verified attack: a 2k-token pin makes every unrelated agent
-session an accidental troupe participant). CLAUDE.md gets the documented
+session an accidental trupe participant). CLAUDE.md gets the documented
 `@AGENTS.md` import; other tools get their native shims. Mutations always go
-through the CLI (`npx troupe claim <id>` etc.) so there is exactly one claim
+through the CLI (`npx trupe claim <id>` etc.) so there is exactly one claim
 mechanism (verified attack: a files-only protocol path forks mutual
 exclusion); the documented no-CLI fallback is "work unclaimed and say so",
 which folds as contested by construction.
@@ -304,7 +304,7 @@ interface Adapter {
   **never-prompt invariant enforced in code**: stdin closed, no TTY,
   non-interactive flags, 120s no-event stall watchdog → kill, record
   `exit_class: stalled`, release claim.
-- Workspaces: troupe owns worktree lifecycle (`troupe/<taskId>` branches),
+- Workspaces: trupe owns worktree lifecycle (`trupe/<taskId>` branches),
   honors `.worktreeinclude` for gitignored env files, auto-detects and runs
   the bootstrap command from lockfiles (`npm ci` / `pnpm i --frozen-lockfile`
   / `uv sync`) **before** the agent starts, recording its exit in the receipt
@@ -314,19 +314,19 @@ interface Adapter {
   `.cmd`-safe resolution; user text never lands in filesystem or ref names -
   ULIDs only. (Agency's origin failure, not repeated.)
 
-### Where troupe deliberately does NOT compete
+### Where trupe deliberately does NOT compete
 
 Worktree/container isolation UIs, in-session multi-agent fan-out, cloud
 execution, CI automation - named as composable layers. Interop commitments:
 import/export with Claude Code agent-teams hooks when they stabilize; a
-troupe task can be what a gh-aw workflow drains; `troupe task import
---from-issue` bridges GitHub Issues (the tracker stays the tracker; `.troupe/
+trupe task can be what a gh-aw workflow drains; `trupe task import
+--from-issue` bridges GitHub Issues (the tracker stays the tracker; `.trupe/
 tasks` is the agent-sized execution queue, never a second backlog - verified
 adoption attack).
 
 ## The board
 
-`troupe board` serves a local read-only view (also `--html` static export).
+`trupe board` serves a local read-only view (also `--html` static export).
 Because state is a pure fold over committed files, `board --at <ref>` renders
 any historical moment and `board --diff @{yesterday}` is standup mode - no
 competitor can do this (their state lives in local DBs or SaaS).
@@ -335,7 +335,7 @@ Against the "new green dashboard" attack: **states derivable from git are
 probed, never recorded** - claim ref existence/expiry, task branch existence,
 merged-into-main, last commit age. Drift renders as first-class states
 (`stale-claim`, `landed-unrecorded`, `orphaned-task`) with one-key reconcile
-via `troupe sync`; the header prints reconciliation freshness. Read commands
+via `trupe sync`; the header prints reconciliation freshness. Read commands
 attempt a cheap fetch with silent offline fallback and print a staleness line
 ("47 records behind origin, fetched 3d ago"); acting commands require a fresh
 fetch or explicit `--offline`.
@@ -343,7 +343,7 @@ fetch or explicit `--offline`.
 ## Scheduling
 
 There is deliberately no daemon. The scheduler is: any teammate's
-`troupe run --loop 30m`, a crontab line, or `troupe init --ci` writing a
+`trupe run --loop 30m`, a crontab line, or `trupe init --ci` writing a
 static ~25-line Actions workflow (pinned version - `@latest` in CI is a
 supply-chain hole and a registry SPOF, verified attack) that drains the same
 claim pool. Scheduler failures are red CI runs, not a silently green
@@ -354,7 +354,7 @@ pitch, and an MVP with no scheduling story reads as a todo-list format
 ## Security posture (stated plainly in the README)
 
 - Task files are prompts that run with your credentials: **never run
-  `troupe run --loop` on a repo where untrusted people can push.** Provenance
+  `trupe run --loop` on a repo where untrusted people can push.** Provenance
   gating (registered authors, trusted refs) is the enforced floor; L-tier
   floors and print-before-run are the seatbelts.
 - Attribution is as strong as your repo's push discipline, upgradeable to
@@ -364,13 +364,13 @@ pitch, and an MVP with no scheduling story reads as a todo-list format
 
 ## Differentiation, in one table
 
-| | Agency | gh-aw | orchestrator wave | **troupe** |
+| | Agency | gh-aw | orchestrator wave | **trupe** |
 |---|---|---|---|---|
 | Humans | 1, hardcoded | repo collaborators | 1 | N, attributed, quorum-capable |
 | State | one laptop's disk | Actions logs/PRs | local DB or SaaS | files in every clone |
 | Infra | FastAPI + timers | GitHub Actions | app/daemon/cloud | none (git remote) |
 | Agent integration | 6 bespoke wrappers | compiled engines | per-tool | 1 protocol file + CLI |
-| Getting started | venv + wizard | ext+init+compile+secrets | app install | `npx troupe init`, offline demo |
+| Getting started | venv + wizard | ext+init+compile+secrets | app install | `npx trupe init`, offline demo |
 | Decision execution | in dashboard process | Actions only | n/a | any machine holding capability |
 | Audit | log files, `admin` | Actions UI | vendor DB | receipts + decisions in repo |
 | Survives vendor death | n/a | no | no (Terragon, Bloop) | yes - it's your repo |
@@ -385,9 +385,9 @@ pitch, and an MVP with no scheduling story reads as a todo-list format
   offline demo; unit + e2e tests (incl. bare-remote claim races, dirty-repo
   init safety); README quickstart.
 - **v0.2:** state branch default-on; `init --ci`; PR-backfill decisions
-  (`troupe sync --prs`); quorum policies; people alias registry; budgets
-  enforcement; `troupe gc`; Windows CI lane.
-- **v1:** MCP server rail; handoff/resume across machines; `troupe audit`
+  (`trupe sync --prs`); quorum policies; people alias registry; budgets
+  enforcement; `trupe gc`; Windows CI lane.
+- **v1:** MCP server rail; handoff/resume across machines; `trupe audit`
   reports; issue-tracker bridges; policy diff-contract enforcement;
   drop-in declarative adapters (codex/gemini/aider).
 

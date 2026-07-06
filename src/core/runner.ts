@@ -22,7 +22,7 @@ import {
   listTaskViews,
   readConfig,
   runnerIdentity,
-  TROUPE_DIR,
+  TRUPE_DIR,
 } from './store.js';
 import type { Proposal, TaskView } from './types.js';
 
@@ -61,7 +61,7 @@ export function detectBootstrap(dir: string): string[] | null {
 
 export function composePrompt(view: TaskView, branch: string): string {
   return [
-    `You are a coding agent working on a task from this repository's shared queue (troupe).`,
+    `You are a coding agent working on a task from this repository's shared queue (trupe).`,
     ``,
     `# Task ${view.task.id}: ${view.task.title}`,
     ``,
@@ -69,7 +69,7 @@ export function composePrompt(view: TaskView, branch: string): string {
     ``,
     `# Rules`,
     `- Work ONLY inside the current directory (a git worktree on branch ${branch}).`,
-    `- Never modify anything under .troupe/ - that is coordination state, not your workspace.`,
+    `- Never modify anything under .trupe/ - that is coordination state, not your workspace.`,
     `- Do NOT run git commit or git push; just edit files. The runner commits your changes when you finish.`,
     ``,
     `# Report`,
@@ -112,8 +112,8 @@ export async function runTask(root: string, opts: RunOptions = {}): Promise<RunO
   }
 
   const runId = ulid();
-  const branch = `troupe/${taskId}`;
-  const worktreeDir = path.join(root, TROUPE_DIR, 'worktrees', taskId);
+  const branch = `trupe/${taskId}`;
+  const worktreeDir = path.join(root, TRUPE_DIR, 'worktrees', taskId);
   const startedAt = Date.now();
   appendRunEvent(root, taskId, runId, {
     ts: new Date().toISOString(),
@@ -166,7 +166,7 @@ export async function runTask(root: string, opts: RunOptions = {}): Promise<RunO
       return { outcome: 'failed', taskId, error: result.error ?? result.summary };
     }
 
-    const commit = await commitWorktree(worktreeDir, `troupe(${taskId.slice(0, 8)}): agent work by ${agentName}`);
+    const commit = await commitWorktree(worktreeDir, `trupe(${taskId.slice(0, 8)}): agent work by ${agentName}`);
     const baseRes = await git(root, ['rev-parse', 'HEAD']);
     const stat = baseRes.ok ? await diffStat(root, baseRes.stdout, branch) : '';
 

@@ -24,16 +24,16 @@ export async function hasRemote(root: string, remote = 'origin'): Promise<boolea
   return res.ok;
 }
 
-/** True when the user's index has staged entries - troupe must not commit then. */
+/** True when the user's index has staged entries - trupe must not commit then. */
 export async function indexDirty(root: string): Promise<boolean> {
   const res = await git(root, ['diff', '--cached', '--name-only']);
   return res.ok && res.stdout.length > 0;
 }
 
 /**
- * Commit exactly the given paths (never -A) with troupe's committer identity
+ * Commit exactly the given paths (never -A) with trupe's committer identity
  * layered on top of the user's. Refuses when the index already holds staged
- * work - sweeping a user's half-staged changes into a troupe commit is the
+ * work - sweeping a user's half-staged changes into a trupe commit is the
  * verified way to lose someone's afternoon.
  */
 export async function commitPaths(
@@ -42,7 +42,7 @@ export async function commitPaths(
   message: string,
 ): Promise<{ ok: boolean; reason?: string }> {
   if (await indexDirty(root)) {
-    return { ok: false, reason: 'index has staged changes; commit or unstage them, then run `troupe sync`' };
+    return { ok: false, reason: 'index has staged changes; commit or unstage them, then run `trupe sync`' };
   }
   const add = await git(root, ['add', '--', ...paths]);
   if (!add.ok) return { ok: false, reason: add.stderr };
@@ -62,7 +62,7 @@ export async function commitPaths(
 export function claimRef(taskId: string): string {
   // refs/heads/* namespace: universally writable where custom namespaces are
   // often blocked by enterprise rulesets. Never contains user text.
-  return `refs/heads/troupe/claims/${taskId}`;
+  return `refs/heads/trupe/claims/${taskId}`;
 }
 
 export interface ClaimPushResult {
@@ -93,7 +93,7 @@ export async function pushClaim(
   if (!tree.ok) return { mode: 'local', won: true, detail: 'cannot resolve HEAD tree - claim is provisional' };
 
   const commit = await git(root, [
-    'commit-tree', tree.stdout, '-p', head.stdout, '-m', `troupe-claim\n\n${claimJson}`,
+    'commit-tree', tree.stdout, '-p', head.stdout, '-m', `trupe-claim\n\n${claimJson}`,
   ]);
   if (!commit.ok) return { mode: 'local', won: true, detail: `commit-tree failed: ${commit.stderr}` };
 
@@ -118,7 +118,7 @@ export async function releaseClaim(root: string, taskId: string, remote = 'origi
   if (!remoteSha) return;
   const tree = await git(root, ['rev-parse', 'HEAD^{tree}']);
   if (!tree.ok) return;
-  const tomb = await git(root, ['commit-tree', tree.stdout, '-p', remoteSha, '-m', 'troupe-claim-released']);
+  const tomb = await git(root, ['commit-tree', tree.stdout, '-p', remoteSha, '-m', 'trupe-claim-released']);
   if (!tomb.ok) return;
   await git(root, ['push', remote, `--force-with-lease=${ref}:${remoteSha}`, `${tomb.stdout}:${ref}`]);
 }
@@ -142,7 +142,7 @@ export async function remoteClaimLive(root: string, taskId: string, remote = 'or
     if (fetched.ok) msg = await git(root, ['log', '-1', '--format=%s', 'FETCH_HEAD']);
   }
   if (!msg.ok) return true; // cannot inspect; fail safe toward "held"
-  return msg.stdout !== 'troupe-claim-released';
+  return msg.stdout !== 'trupe-claim-released';
 }
 
 // ---------------------------------------------------------------------------

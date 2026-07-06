@@ -1,10 +1,10 @@
 {
-  "name": "troupe",
+  "name": "trupe",
   "version": "0.1.0",
   "description": "Git-native team orchestration for coding agents: tasks, proposals, approvals, and audit in your repo.",
   "type": "module",
   "bin": {
-    "troupe": "./bin/troupe.js"
+    "trupe": "./bin/trupe.js"
   },
   "files": [
     "bin",

@@ -9,7 +9,7 @@ import { getAdapter, listAdapters } from '../dist/adapters/index.js';
 let ws: string;
 
 beforeEach(() => {
-  ws = fs.mkdtempSync(path.join(os.tmpdir(), 'troupe-ws-'));
+  ws = fs.mkdtempSync(path.join(os.tmpdir(), 'trupe-ws-'));
 });
 
 afterEach(() => {

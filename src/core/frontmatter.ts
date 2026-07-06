@@ -1,5 +1,5 @@
 /**
- * Minimal YAML frontmatter for troupe's markdown entities. Deliberately tiny:
+ * Minimal YAML frontmatter for trupe's markdown entities. Deliberately tiny:
  * flat string/number/boolean/string-array values only - enough for task and
  * proposal headers without pulling in a YAML dependency. Unknown keys pass
  * through untouched so humans can annotate freely.

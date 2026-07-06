@@ -1,7 +1,7 @@
-# troupe
+# trupe
 
 Team orchestration for coding agents, in your repo. Tasks, proposals, human
-approvals, and a full audit trail - as files in `.troupe/`, synced by git.
+approvals, and a full audit trail - as files in `.trupe/`, synced by git.
 No server, no accounts, no new API keys.
 
 Your agents do the work; your team decides what ships; git carries the state.
@@ -11,52 +11,52 @@ Your agents do the work; your team decides what ships; git carries the state.
 Not on npm yet; install straight from GitHub (Node >= 20):
 
 ```bash
-npm install -g github:khou/troupe   # builds on install, puts `troupe` on your PATH
+npm install -g github:khou/trupe   # builds on install, puts `trupe` on your PATH
 ```
 
-Or from a clone: `git clone https://github.com/khou/troupe && cd troupe && npm install && npm link`.
+Or from a clone: `git clone https://github.com/khou/trupe && cd trupe && npm install && npm link`.
 
 ## Quickstart (5 minutes, works offline)
 
 ```bash
 cd your-repo
-troupe init                # zero questions; detects claude/codex on PATH
-troupe run --demo          # full loop with the built-in offline agent (free, seconds)
-troupe review              # read the proposal it produced
-troupe approve <id>        # your git identity is the signature
-troupe board               # local dashboard at localhost:4517
+trupe init                # zero questions; detects claude/codex on PATH
+trupe run --demo          # full loop with the built-in offline agent (free, seconds)
+trupe review              # read the proposal it produced
+trupe approve <id>        # your git identity is the signature
+trupe board               # local dashboard at localhost:4517
 ```
 
 Then the same loop with a real agent (uses your existing `claude` login):
 
 ```bash
-troupe task add "Fix the flaky test in auth/" --body "It fails 1 in 5 runs on CI."
-troupe run                 # claims the task, runs Claude Code headless in a worktree
-troupe review              # proposal + diffstat + receipt (model, cost, duration)
-troupe approve <id>        # then: git merge troupe/<task-id>, troupe mark <id> done
+trupe task add "Fix the flaky test in auth/" --body "It fails 1 in 5 runs on CI."
+trupe run                 # claims the task, runs Claude Code headless in a worktree
+trupe review              # proposal + diffstat + receipt (model, cost, duration)
+trupe approve <id>        # then: git merge trupe/<task-id>, trupe mark <id> done
 ```
 
 Teammate #2 needs nothing but the clone:
 
 ```bash
 git clone <repo> && cd repo
-troupe review              # sees every pending proposal immediately
-troupe approve <id>        # their approval, their identity, merged by git like code
+trupe review              # sees every pending proposal immediately
+trupe approve <id>        # their approval, their identity, merged by git like code
 ```
 
 ## How it works
 
-- **Everything is a file.** Tasks (`.troupe/tasks/*.md`), claims, proposals,
+- **Everything is a file.** Tasks (`.trupe/tasks/*.md`), claims, proposals,
   decisions, and run receipts are create-only files with ULID names. Status is
   never stored - it's derived by folding the records, so every clone that has
   pulled the same commits computes the same truth, and git merges never
-  conflict on troupe state.
-- **Agents run in worktrees.** `troupe run` claims a task, creates a worktree
-  on branch `troupe/<task-id>`, bootstraps deps (detected from lockfiles),
+  conflict on trupe state.
+- **Agents run in worktrees.** `trupe run` claims a task, creates a worktree
+  on branch `trupe/<task-id>`, bootstraps deps (detected from lockfiles),
   runs the agent headlessly, commits the work, and posts a proposal with a
   diffstat and receipt. Your working tree is never touched.
 - **Claims use the remote as the lock.** Claiming pushes an atomic
-  create-only ref (`refs/heads/troupe/claims/<task-id>`); two machines racing
+  create-only ref (`refs/heads/trupe/claims/<task-id>`); two machines racing
   the same task resolve at the git host - the loser finds out before burning
   tokens. No remote? Claims are local and clearly labeled provisional.
 - **Approvals are pinned to content.** A decision records the SHA-256 of the
@@ -77,7 +77,7 @@ troupe approve <id>        # their approval, their identity, merged by git like 
 | `codex` / `gemini` / `aider` | planned | adapter interface is 3 functions; PRs welcome |
 
 Any agent that can run a CLI can also participate with **no adapter at all**:
-`troupe instructions` prints the protocol (`.troupe/PROTOCOL.md`), and `init`
+`trupe instructions` prints the protocol (`.trupe/PROTOCOL.md`), and `init`
 pins a 5-line pointer into `AGENTS.md`.
 
 ## Cost
@@ -86,7 +86,7 @@ Prompt caching is automatic: Claude Code applies it inside every headless run,
 and receipts record the cache read/write split so you can see it. What you
 control: each run is a fresh session (the first turn pays the cache-write cost
 for the system prompt), and the model is your CLI default unless you pin one.
-For small tasks, pin a cheaper model per agent in `.troupe/config.json`:
+For small tasks, pin a cheaper model per agent in `.trupe/config.json`:
 
 ```json
 "agents": { "claude-code": { "adapter": "claude-code", "model": "claude-sonnet-5" } }
@@ -98,7 +98,7 @@ expensive task shapes are visible instead of surprising.
 ## Security posture (read this)
 
 Task files are prompts that run with the runner's credentials. **Never run
-troupe on a schedule in a repo where untrusted people can push.** Approvals
+trupe on a schedule in a repo where untrusted people can push.** Approvals
 are as trustworthy as your repo's push discipline: identity comes from
 `git config`, exactly like commits. See SPEC.md for the hardening roadmap
 (state branch, verified identities, quorum, policy tiers).
@@ -106,30 +106,30 @@ are as trustworthy as your repo's push discipline: identity comes from
 ## Commands
 
 ```
-troupe init                  set up .troupe/ (zero questions, never touches your index)
-troupe doctor                environment + adapter checks with copy-pastable fixes
-troupe task add|list|show    manage the queue
-troupe run [--task id]       claim + execute one task ( --demo = offline agent )
-troupe review [--json]       proposals awaiting your decision
-troupe approve|reject <id>   decide (records identity + content hash)
-troupe mark <id> done        close out
-troupe sync                  fetch, commit .troupe state (exact paths only), push
-troupe board [--port n]      read-only local dashboard (+ /api JSON)
-troupe instructions          the agent-facing protocol
+trupe init                  set up .trupe/ (zero questions, never touches your index)
+trupe doctor                environment + adapter checks with copy-pastable fixes
+trupe task add|list|show    manage the queue
+trupe run [--task id]       claim + execute one task ( --demo = offline agent )
+trupe review [--json]       proposals awaiting your decision
+trupe approve|reject <id>   decide (records identity + content hash)
+trupe mark <id> done        close out
+trupe sync                  fetch, commit .trupe state (exact paths only), push
+trupe board [--port n]      read-only local dashboard (+ /api JSON)
+trupe instructions          the agent-facing protocol
 ```
 
 ## Why not …
 
 - **Agency** - the inspiration (observe → propose → decide → execute, markdown
   state). Single-user by construction: one `decided_by` string, state on one
-  laptop, execution inside the dashboard process. troupe is the team version:
+  laptop, execution inside the dashboard process. trupe is the team version:
   N humans, state in git, execution on any machine. (Clean-room reimplementation;
   Agency is AGPL and its code is untouched.)
 - **GitHub Agentic Workflows** - great inside Actions; requires extension +
-  compile + per-engine secrets, and only runs in CI. troupe runs anywhere git
+  compile + per-engine secrets, and only runs in CI. trupe runs anywhere git
   does, laptops included, and a task can still be drained by CI.
 - **claude-squad / Conductor / vibe-kanban** - excellent single-human runner
-  UIs with local state. troupe is the layer between *people*: shared queue,
+  UIs with local state. trupe is the layer between *people*: shared queue,
   attributed approvals, audit - and it composes with any of them.
 
 MIT. Built with tests: `npm test` (41 passing, including a two-clone team

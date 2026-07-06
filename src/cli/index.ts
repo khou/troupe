@@ -12,13 +12,13 @@ import {
   findRoot,
   getTaskView,
   humanIdentity,
-  initTroupe,
+  initTrupe,
   listTaskViews,
   markTask,
   readConfig,
   requireRoot,
   resolveTaskId,
-  TROUPE_DIR,
+  TRUPE_DIR,
 } from '../core/store.js';
 import type { TaskView } from '../core/types.js';
 
@@ -50,7 +50,7 @@ function parseArgs(argv: string[]): { positional: string[]; flags: Flags } {
 }
 
 function fail(msg: string): never {
-  console.error(`troupe: ${msg}`);
+  console.error(`trupe: ${msg}`);
   process.exit(1);
 }
 
@@ -78,7 +78,7 @@ async function cmdInit(flags: Flags): Promise<void> {
   const gitVersion = safeExec('git', ['--version']);
   if (!gitVersion) fail('git not found on PATH');
 
-  const config = initTroupe(root, {
+  const config = initTrupe(root, {
     defaultAgent: typeof flags.agent === 'string' ? flags.agent : undefined,
   });
   writeProtocol(root);
@@ -97,31 +97,31 @@ async function cmdInit(flags: Flags): Promise<void> {
   let helloId: string | null = null;
   if (views.length === 0) {
     const hello = createTask(root, {
-      title: 'Hello troupe: propose one small improvement',
+      title: 'Hello trupe: propose one small improvement',
       body: [
         'Read README.md (if present) and the output of `git ls-files | head -50`.',
         'Propose ONE small, concrete improvement to this repository. Do not make sweeping changes.',
         '',
-        'FAKE:write TROUPE_HELLO.md troupe demo: the loop works - replace me with a real task',
+        'FAKE:write TRUPE_HELLO.md trupe demo: the loop works - replace me with a real task',
       ].join('\n'),
     });
     helloId = hello.id;
   }
 
-  console.log(`initialized ${TROUPE_DIR}/ in ${root}`);
+  console.log(`initialized ${TRUPE_DIR}/ in ${root}`);
   console.log(`  project:       ${config.project}`);
   console.log(`  default agent: ${config.defaultAgent}${detected.length ? ` (detected: ${detected.join(', ')})` : ' (none detected - demo works offline)'}`);
-  console.log(`  AGENTS.md:     ${pin.created ? 'created with troupe pointer' : pin.updated ? 'troupe pointer pinned' : 'already pinned'}${shim.touched ? ' · CLAUDE.md now imports @AGENTS.md' : ''}`);
+  console.log(`  AGENTS.md:     ${pin.created ? 'created with trupe pointer' : pin.updated ? 'trupe pointer pinned' : 'already pinned'}${shim.touched ? ' · CLAUDE.md now imports @AGENTS.md' : ''}`);
   if (await indexDirty(root)) {
-    console.log(`  note: your index has staged changes - troupe committed nothing.`);
+    console.log(`  note: your index has staged changes - trupe committed nothing.`);
   }
   console.log('');
   console.log('next:');
-  if (helloId) console.log(`  troupe run --demo            # offline demo of the full loop (seconds, free)`);
-  console.log(`  troupe run                    # run the top task with ${config.defaultAgent}`);
-  console.log(`  troupe review                 # see proposals awaiting your decision`);
-  console.log(`  troupe board                  # local dashboard`);
-  console.log(`  git add ${TROUPE_DIR} AGENTS.md && git commit -m "troupe init"   # share with your team`);
+  if (helloId) console.log(`  trupe run --demo            # offline demo of the full loop (seconds, free)`);
+  console.log(`  trupe run                    # run the top task with ${config.defaultAgent}`);
+  console.log(`  trupe review                 # see proposals awaiting your decision`);
+  console.log(`  trupe board                  # local dashboard`);
+  console.log(`  git add ${TRUPE_DIR} AGENTS.md && git commit -m "trupe init"   # share with your team`);
 }
 
 function findGitRoot(from: string): string | null {
@@ -150,10 +150,10 @@ async function cmdDoctor(): Promise<void> {
   const worktreeOk = gitOk ? Number(gitOk[1]) > 2 || (Number(gitOk[1]) === 2 && Number(gitOk[2]) >= 5) : false;
   checks.push(['git >= 2.5 (worktrees)', worktreeOk, worktreeOk ? 'ok' : 'upgrade git']);
   const root = findRoot();
-  checks.push(['.troupe found', !!root, root ?? 'run `troupe init`']);
+  checks.push(['.trupe found', !!root, root ?? 'run `trupe init`']);
   if (root) {
     checks.push(['remote configured', await hasRemote(root), 'claims are provisional without a remote (fine solo)']);
-    checks.push(['index clean', !(await indexDirty(root)), 'troupe will refuse to auto-commit while staged changes exist']);
+    checks.push(['index clean', !(await indexDirty(root)), 'trupe will refuse to auto-commit while staged changes exist']);
   }
   for (const adapter of listAdapters()) {
     const reason = await adapter.available();
@@ -171,7 +171,7 @@ async function cmdDoctor(): Promise<void> {
 function cmdTaskAdd(positional: string[], flags: Flags): void {
   const root = requireRoot();
   const title = positional.join(' ').trim();
-  if (!title) fail('usage: troupe task add "title" [--body "..."] [--agent name] [--priority high|normal|low]');
+  if (!title) fail('usage: trupe task add "title" [--body "..."] [--agent name] [--priority high|normal|low]');
   const task = createTask(root, {
     title,
     body: typeof flags.body === 'string' ? flags.body : '',
@@ -180,7 +180,7 @@ function cmdTaskAdd(positional: string[], flags: Flags): void {
     tags: typeof flags.tag === 'string' ? [flags.tag] : [],
   });
   console.log(`created task ${short(task.id)}: ${task.title}`);
-  console.log(`  file: ${TROUPE_DIR}/tasks/${task.id}.md - edit the body freely before running`);
+  console.log(`  file: ${TRUPE_DIR}/tasks/${task.id}.md - edit the body freely before running`);
 }
 
 function cmdTaskList(flags: Flags): void {
@@ -195,7 +195,7 @@ function cmdTaskList(flags: Flags): void {
     return;
   }
   if (views.length === 0) {
-    console.log('no tasks. add one: troupe task add "title"');
+    console.log('no tasks. add one: trupe task add "title"');
     return;
   }
   for (const v of views) console.log(statusLine(v));
@@ -209,7 +209,7 @@ function cmdTaskList(flags: Flags): void {
 
 function cmdTaskShow(positional: string[]): void {
   const root = requireRoot();
-  const id = resolveTaskId(root, positional[0] ?? fail('usage: troupe task show <id>'));
+  const id = resolveTaskId(root, positional[0] ?? fail('usage: trupe task show <id>'));
   const v = getTaskView(root, id);
   console.log(statusLine(v));
   console.log('');
@@ -248,7 +248,7 @@ async function cmdRun(flags: Flags): Promise<void> {
       console.log(`proposal ${short(result.proposal.id)} on task ${short(result.taskId)} (claim: ${result.claimMode})`);
       console.log(`  ${result.proposal.summary}`);
       if (result.proposal.branch) console.log(`  branch: ${result.proposal.branch}`);
-      console.log(`  next: troupe review`);
+      console.log(`  next: trupe review`);
   }
 }
 
@@ -294,7 +294,7 @@ function cmdReview(flags: Flags): void {
     console.log('');
     console.log(p.body.split('\n').map((l) => `    ${l}`).join('\n'));
     console.log('');
-    console.log(`    approve: troupe approve ${short(p.id)}     reject: troupe reject ${short(p.id)} --note "why"`);
+    console.log(`    approve: trupe approve ${short(p.id)}     reject: trupe reject ${short(p.id)} --note "why"`);
     console.log('');
   }
 }
@@ -316,12 +316,12 @@ function resolveProposal(root: string, prefix: string): { taskId: string; propos
   }
   if (matches.length === 1) return matches[0];
   if (matches.length === 0) fail(`no proposal matches "${prefix}"`);
-  fail(`ambiguous "${prefix}" (${matches.length} matches) - use a longer prefix from troupe review`);
+  fail(`ambiguous "${prefix}" (${matches.length} matches) - use a longer prefix from trupe review`);
 }
 
 function cmdDecide(verdict: 'approve' | 'reject', positional: string[], flags: Flags): void {
   const root = requireRoot();
-  const target = positional[0] ?? fail(`usage: troupe ${verdict} <proposal-id> [--note "..."]`);
+  const target = positional[0] ?? fail(`usage: trupe ${verdict} <proposal-id> [--note "..."]`);
   const { taskId, proposalId } = resolveProposal(root, target);
   const view = getTaskView(root, taskId);
   if (view.contestedProposalIds.includes(proposalId)) {
@@ -337,13 +337,13 @@ function cmdDecide(verdict: 'approve' | 'reject', positional: string[], flags: F
   const p = after.proposals.find((x) => x.id === proposalId);
   if (verdict === 'approve' && p?.branch) {
     console.log(`land it: git merge ${p.branch}   (or open a PR from that branch)`);
-    console.log(`then:    troupe mark ${short(taskId)} done`);
+    console.log(`then:    trupe mark ${short(taskId)} done`);
   }
 }
 
 function cmdMark(positional: string[]): void {
   const root = requireRoot();
-  const id = resolveTaskId(root, positional[0] ?? fail('usage: troupe mark <task-id> done|dropped'));
+  const id = resolveTaskId(root, positional[0] ?? fail('usage: trupe mark <task-id> done|dropped'));
   const state = positional[1];
   if (state !== 'done' && state !== 'dropped') fail('state must be done or dropped');
   markTask(root, id, state);
@@ -357,9 +357,9 @@ async function cmdSync(): Promise<void> {
     const fetch = await git(root, ['fetch', '-q', 'origin']);
     console.log(fetch.ok ? 'fetched origin' : `fetch failed: ${fetch.stderr}`);
   }
-  const res = await commitPaths(root, [TROUPE_DIR, 'AGENTS.md'], 'troupe: sync coordination state');
+  const res = await commitPaths(root, [TRUPE_DIR, 'AGENTS.md'], 'trupe: sync coordination state');
   if (!res.ok) fail(res.reason ?? 'commit failed');
-  console.log('committed .troupe state (exact paths only)');
+  console.log('committed .trupe state (exact paths only)');
   if (remote) {
     const branch = await git(root, ['rev-parse', '--abbrev-ref', 'HEAD']);
     const push = await git(root, ['push', 'origin', branch.stdout]);
@@ -373,7 +373,7 @@ function cmdBoard(flags: Flags): void {
   const root = requireRoot();
   const port = typeof flags.port === 'string' ? Number(flags.port) : 4517;
   startBoard(root, port);
-  console.log(`troupe board: http://localhost:${port}  (read-only fold of ${TROUPE_DIR}/ - Ctrl-C to stop)`);
+  console.log(`trupe board: http://localhost:${port}  (read-only fold of ${TRUPE_DIR}/ - Ctrl-C to stop)`);
 }
 
 function cmdInstructions(flags: Flags): void {
@@ -386,11 +386,11 @@ function cmdInstructions(flags: Flags): void {
   console.log(protocolMarkdown());
 }
 
-const HELP = `troupe ${VERSION} - team orchestration for coding agents, in your repo
+const HELP = `trupe ${VERSION} - team orchestration for coding agents, in your repo
 
-usage: troupe <command> [args]
+usage: trupe <command> [args]
 
-  init                       set up .troupe/ in this repo (zero questions)
+  init                       set up .trupe/ in this repo (zero questions)
   doctor                     check git, adapters, auth, repo posture
   task add "title" [--body]  add a task to the queue
   task list [--status s]     list tasks (--json for machines)
@@ -400,11 +400,11 @@ usage: troupe <command> [args]
   approve <id> [--note]      approve a proposal (records your git identity)
   reject <id> [--note]       reject a proposal
   mark <id> done|dropped     close a task
-  sync                       fetch + commit .troupe state + push (exact paths only)
+  sync                       fetch + commit .trupe state + push (exact paths only)
   board [--port n]           local read-only dashboard
   instructions [--sync]      print the agent protocol (pin into AGENTS.md with --sync)
 
-state lives in .troupe/ as create-only files that merge cleanly; share it with
+state lives in .trupe/ as create-only files that merge cleanly; share it with
 plain git push/pull. docs: SPEC.md`;
 
 export async function main(argv: string[]): Promise<void> {
@@ -418,7 +418,7 @@ export async function main(argv: string[]): Promise<void> {
       if (sub === 'add') return cmdTaskAdd(positional, flags);
       if (sub === 'list') return cmdTaskList(flags);
       if (sub === 'show') return cmdTaskShow(positional);
-      fail('usage: troupe task add|list|show');
+      fail('usage: trupe task add|list|show');
       break;
     case 'run': return cmdRun(flags);
     case 'review': return cmdReview(flags);
